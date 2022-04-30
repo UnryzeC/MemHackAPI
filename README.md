@@ -6,6 +6,7 @@ What is MemHack?
 
 What do I need to compile it?
   - https://www.hiveworkshop.com/threads/w3x2lni-v2-7-2.305201/
+  - After you download JNPG, download pjass.exe from my project's folder JassHelper and replace it in JassHelper folder where JNPG was installed.
 
 What World Editor do you suggest for it?
   - https://xgm.guru/p/wc3/jassnewgenpack-r
