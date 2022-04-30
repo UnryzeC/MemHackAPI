@@ -1,0 +1,2 @@
+Hook to add/substract "charges" from abilities, these "charges" are only visual, meaning you are forcing the game to simply draw the amount of "charges" you specify.
+Had to rewrite a bit original code and clean it out, also I have added 1.27a support (duh).

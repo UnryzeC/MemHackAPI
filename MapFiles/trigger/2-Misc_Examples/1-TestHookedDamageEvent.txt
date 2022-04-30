@@ -1,0 +1,2 @@
+This trigger can be removed, as it serves only for demonstration of how to use a modified Damaged Event.
+You can freely remove/disable this trigger.

@@ -1,0 +1,2 @@
+This trigger can be safely removed, since you need to configure Init_BerserkAbilityHook for it to actually do anything.
+Make sure you read the instructions CAREFULLY, mistake is NOT an option!

@@ -1,0 +1,106 @@
+IncludeFile "UI\FrameDef\UI\EscMenuTemplates.fdf", //Frames from that fdf can be inherited in this file
+IncludeFile "UI\FrameDef\UI\QuestDialog.fdf",
+
+Frame "SPRITE" "Selector1" {
+    BackgroundArt "selecter1.mdx",
+}
+Frame "SPRITE" "Selector2" {
+    BackgroundArt "selecter2.mdx",
+}
+Frame "SPRITE" "Selector3" {
+    BackgroundArt "selecter3.mdx",
+}
+Frame "SPRITE" "Selector4" {
+    BackgroundArt "selecter4.mdx",
+}
+Frame "SPRITE" "Selector5" {
+    BackgroundArt "selecter5.mdx",
+}
+
+
+Frame "BACKDROP" "HeroBackdrop" {
+    BackdropBackground  "ReplaceableTextures\CommandButtons\BTNRallyPoint.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.0125,
+    BackdropBackgroundInsets 0.005 0.005 0.005 0.005,
+    BackdropEdgeFile  "UI\Widgets\ToolTips\Human\human-tooltip-border.blp",
+}
+
+Frame "BACKDROP" "ChatHistoryBackdrop" {
+    DecorateFileNames,
+    BackdropTileBackground,
+    BackdropBackground  "EscMenuBackground",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.0125,
+    BackdropBackgroundSize  0.256,
+    BackdropBackgroundInsets 0.005 0.005 0.005 0.005,
+    BackdropEdgeFile  "EscMenuBorder",
+}
+
+Frame "GLUETEXTBUTTON" "ButtonChat" INHERITS WITHCHILDREN "EscMenuButtonTemplate" {
+    UseActiveContext,
+    ButtonText "ScriptDialogButtonText",
+    Frame "TEXT" "ScriptDialogButtonText" INHERITS "EscMenuButtonTextTemplate" {
+        Text "",
+    }
+}   
+
+Frame "TEXT" "ChatText1" {
+    DecorateFileNames,
+    FrameFont "EscMenuTextFont", 0.011, "",
+    FontJustificationH JUSTIFYCENTER,
+    FontJustificationV JUSTIFYMIDDLE,    
+    FontFlags "FIXEDSIZE",
+    FontColor 0.99 0.827 0.0705 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 0.5 0.5 0.5 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,    
+    FontShadowOffset 0.002 -0.002,  
+}
+
+Frame "TEXT" "ChatText2" {
+    DecorateFileNames,
+    FrameFont "EscMenuTextFont", 0.015, "",
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYMIDDLE,    
+    FontFlags "FIXEDSIZE",
+    FontColor 0.99 0.827 0.0705 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 0.2 0.2 0.2 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,    
+    FontShadowOffset 0.002 -0.002,  
+}
+
+Frame "TEXT" "ChatText3" {
+    DecorateFileNames,
+    FrameFont "EscMenuTextFont", 0.011, "",
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYLEFT,    
+    FontFlags "FIXEDSIZE",
+    FontColor 0.99 0.827 0.0705 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 0.5 0.5 0.5 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,    
+    FontShadowOffset 0.002 -0.002,  
+}
+
+Frame "BACKDROP" "UI_Dialog_NEsmall" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "UI_Dialog_NE" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.032,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.01 0.01 0.01 0.01,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-border.blp",
+}
+

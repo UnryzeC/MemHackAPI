@@ -1,0 +1,311 @@
+﻿IncludeFile "UI\FrameDef\Glue\BattleNetTemplates.fdf",
+
+Frame "TEXTBUTTON" "ButtonTYPE1" {
+    ControlStyle "AUTOTRACK|HIGHLIGHTONMOUSEOVER",
+    ButtonPushedTextOffset -0.001f -0.001f,
+	
+    //背景
+    ControlBackdrop "ButtonBackdropTemplate",
+    Frame "BACKDROP" "ButtonBackdropTemplate" {
+		BackdropBackground  "UI\Widgets\Glues\GlueScreen-Button1-BackdropBackground.blp",
+		BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+		BackdropCornerSize  0.016,
+		BackdropBackgroundSize  0.032,
+		BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+        BackdropEdgeFile  "UI\Widgets\Glues\GlueScreen-Button1-BackdropBorder.blp",
+    }
+    //按下
+    ControlPushedBackdrop "ButtonPushedBackdropTemplate",
+    Frame "BACKDROP" "ButtonPushedBackdropTemplate" {
+		BackdropBackground  "UI\Widgets\Glues\GlueScreen-Button1-BackdropBackground-Down.blp",
+		BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+		BackdropCornerSize  0.016,
+		BackdropBackgroundSize  0.032,
+		BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+        BackdropEdgeFile  "UI\Widgets\Glues\GlueScreen-Button1-BackdropBorder-Down.blp",
+    }
+    //禁用
+    ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
+    Frame "BACKDROP" "ButtonDisabledBackdropTemplate" {
+		BackdropBackground  "UI\Widgets\Glues\GlueScreen-Button1-BackdropBackground-Disabled.blp",
+		BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+		BackdropCornerSize  0.016,
+		BackdropBackgroundSize  0.032,
+		BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+        BackdropEdgeFile  "UI\Widgets\Glues\GlueScreen-Button1-BackdropBorder-DisabledDown.blp",
+    }
+    //高亮
+    ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
+    Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" {
+        HighlightType "FILETEXTURE",
+        HighlightAlphaFile "UI\Widgets\EscMenu\Human\quest-button-highlight.blp",
+        HighlightAlphaMode "ADD",
+    }
+}
+
+Frame "TEXTBUTTON" "UI_FRANME_ITEM_REWARD" {
+    ControlStyle "AUTOTRACK|HIGHLIGHTONMOUSEOVER",
+    ButtonPushedTextOffset -0.001f -0.001f,
+	
+    //背景
+    ControlBackdrop "ButtonBackdropTemplate",
+    Frame "BACKDROP" "ButtonBackdropTemplate" {
+		BackdropBackground  "war3mapImported\alpha.tga",
+		BackdropBlendAll,
+    }
+    //按下
+    ControlPushedBackdrop "ButtonPushedBackdropTemplate",
+    Frame "BACKDROP" "ButtonPushedBackdropTemplate" {
+		BackdropBackground  "UI\Widgets\EscMenu\Human\blank-background.blp",
+		BackdropBlendAll,
+    }
+    //禁用
+    ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
+    Frame "BACKDROP" "ButtonDisabledBackdropTemplate" {
+		BackdropBackground  "UI\Widgets\EscMenu\Human\quest-normal-background.blp",
+		BackdropBlendAll,
+    }
+    //高亮
+    ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
+    Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" {
+        HighlightType "FILETEXTURE",
+        HighlightAlphaFile "UI\Widgets\EscMenu\Human\quest-button-highlight.blp",
+        HighlightAlphaMode "ADD",
+    }
+}
+
+Frame "BACKDROP" "UI_Dialog_NEsmall" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-border.blp",
+}
+Frame "BACKDROP" "UI_Dialog_NE" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.032,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.01 0.01 0.01 0.01,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "UI_FRANME_REWARD" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\Human\human-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "UI_FRANME_REWARD2" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "UI_FRANME_REWARD_BLACK" {
+    BackdropTileBackground,
+    BackdropBackground  "Textures\Black32.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\Human\human-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "UI_Dialog_UD" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\NightElf\nightelf-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\Undead\undead-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "tiptools" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\Human\human-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\Human\human-options-menu-border.blp",
+}
+
+Frame "BACKDROP" "tiptools1" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\ToolTips\Human\human-tooltip-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.012,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.002 0.002 0.002 0.002,
+    BackdropEdgeFile  "UI\Widgets\ToolTips\Human\human-tooltip-border.blp",
+}
+
+
+Frame "BACKDROP" "tiptools2" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\ToolTips\Human\human-tooltip-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\ToolTips\Human\human-tooltip-border.blp",
+}
+
+Frame "BACKDROP" "tiptools3" {
+    BackdropTileBackground,
+    BackdropBackground  "UI\Widgets\EscMenu\Human\human-options-menu-background.blp",
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.016,
+    BackdropBackgroundSize  0.032,
+    BackdropBackgroundInsets 0.004 0.004 0.004 0.004,
+    BackdropEdgeFile  "UI\Widgets\EscMenu\Human\editbox-border.blp",
+}
+
+Frame "TEXT" "text007" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.007, "",
+    FontJustificationH JUSTIFYRIGHT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "text008" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.008, "",
+    FontJustificationH JUSTIFYRIGHT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "text009" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.009, "",
+    FontJustificationH JUSTIFYRIGHT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "text010" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.010, "",
+    FontJustificationH JUSTIFYRIGHT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "text011" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.011, "",
+    FontJustificationH JUSTIFYRIGHT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "text012" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.012, "",
+    FontJustificationH JUSTIFYRIGHT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+
+Frame "TEXT" "EquipTips" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.0095, "",
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+
+Frame "TEXT" "BossTips" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.013, "",
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+
+Frame "TEXT" "itemnumber" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.011, "",
+    FontJustificationH JUSTIFYLEFT,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "itemname" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.011, "",
+    FontJustificationH JUSTIFYCENTER,
+    FontJustificationV JUSTIFYMIDDLE,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}
+Frame "TEXT" "UITextCenter" {
+    FrameFont "Fonts\FRIZQT__.TTF", 0.015, "",
+    FontJustificationH JUSTIFYCENTER,
+    FontJustificationV JUSTIFYCENTER,
+    FontFlags "FIXEDSIZE",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontHighlightColor 1.0 1.0 1.0 1.0,
+    FontDisabledColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.0012 -0.0012,
+    LayerStyle "IGNORETRACKEVENTS",
+}

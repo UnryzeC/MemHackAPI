@@ -1,0 +1,2 @@
+This trigger is required if you want to generate damage event hook to enhance its capabilities.
+If you remove Init_MemHackDamageEventHook, and still use GetDamageEventESPData, it may cause fatal error!

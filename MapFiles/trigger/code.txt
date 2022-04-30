@@ -1,0 +1,14 @@
+This version of memory hack has been assembled by Sandro Takaishvili (Unryze) aka me, which I wanted to do ages ago, but simply disliked the very idea of working with MemoryHack.
+Special thanks to quq_CCCP for helping with testing and providing useful information, probably without him I would have scraped this idea of making a full-blown MemoryHack based WE-openable map.
+Additional thanks to ENAlexey, Karaul0v, Dracol1ch, and leandrotp for all their help and for their contributions to the original MemoryHack and much more.
+
+You are free to use the API however you like, but make sure you are editing with great causion, since this code is not for child's play, it may break in so many ways that you would start hating your life.
+Remember, things that are here, are still a small part of the possibilities of Warcraft 3 Engine, it is capable of so much more.
+
+Anyhow, if you have any suggestions or you wish to report a bug, you can contact me, here is my contact list:
+
+Discord: Unyze#4087
+VK: https://vk.com/unryze
+FB: https://www.facebook.com/sandro.takaishvili.7
+
+Good luck and have fun!
