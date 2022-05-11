@@ -1,4 +1,4 @@
-//TESH.scrollpos=240
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 //! nocjass
 library APIAllTypecast
@@ -34,8 +34,6 @@ library APIAllTypecast
         integer bytecode        // This is not used, it's here just to fool Jasshelper
         integer array l__bytecode
         integer pbytecode
-
-        hashtable MemHackTable = InitHashtable( )
     endglobals
 
     //# +nosemanticerror

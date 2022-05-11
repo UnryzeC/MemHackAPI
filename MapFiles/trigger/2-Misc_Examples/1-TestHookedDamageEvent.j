@@ -1,29 +1,23 @@
-//TESH.scrollpos=50
+//TESH.scrollpos=67
 //TESH.alwaysfold=0
 //! nocjass
 library TestHookedDamageEvent
-    globals
-        group DE_Group     = null
-        unit DE_TempUnit   = null
-        trigger DE_Trigger = null
-    endglobals
-
     function GetDamageId takes integer dmg_t returns integer
         return log( dmg_t, 2 ) // Gets base 2 logarithm of WeaponType.
     endfunction
     
     function OnUnitDamagedHandlerEx takes integer eventData, unit source, unit target, real dmg returns boolean
-        local real init_dmg = CleanReal( IndexToReal( ReadRealMemory( eventData + 0x04 ) ) )
-        local integer phys  = ReadRealMemory( eventData + 0x08 ) // Pointer to parametres or flag saved by damage source, results may vary!
-        local integer unk_1 = ReadRealMemory( eventData + 0x0C ) // ??
-        local integer pTarg = ReadRealMemory( eventData + 0x10 ) // Target
-        local integer data  = ReadRealMemory( eventData + 0x00 ) // CDamageData
-        local integer src_u = ReadRealMemory( data + 0x00 ) // CUnit source
-        local integer wpn_t = ReadRealMemory( data + 0x04 ) // weapon_type
-        local integer flags = ReadRealMemory( data + 0x0C ) // flags
-        local real real_dmg = CleanReal( IndexToReal( ReadRealMemory( data + 0x10 ) ) ) // damage
-        local integer dmg_t = ReadRealMemory( data + 0x14 ) // Use GetDamageTypeByAddr( dmg_t ) to get Damage Type id.
-        local integer atk_t = ReadRealMemory( data + 0x20 )
+        local real init_dmg  = CleanReal( IndexToReal( ReadRealMemory( eventData + 0x04 ) ) )
+        local integer phys   = ReadRealMemory( eventData + 0x08 ) // Pointer to parametres or flag saved by damage source, results may vary!
+        local integer unk_1  = ReadRealMemory( eventData + 0x0C ) // ??
+        local integer pTarg  = ReadRealMemory( eventData + 0x10 ) // Target
+        local integer data   = ReadRealMemory( eventData + 0x00 ) // CDamageData
+        local integer src_u  = ReadRealMemory( data + 0x00 ) // CUnit source
+        local integer wpn_t  = ReadRealMemory( data + 0x04 ) // weapon_type
+        local integer flags  = ReadRealMemory( data + 0x0C ) // flags
+        local real real_dmg  = CleanReal( IndexToReal( ReadRealMemory( data + 0x10 ) ) ) // damage
+        local integer dmg_t  = ReadRealMemory( data + 0x14 ) // Use GetDamageTypeByAddr( dmg_t ) to get Damage Type id.
+        local integer atk_t  = ReadRealMemory( data + 0x20 )
         local boolean retval = false // set this value to true, if you handled what you needed in here so OnUnitDamagedHandler will simply end.
 
         // Attack Types: Spell = 0, Normal = 1, Piercing = 2, Siege = 3, Magic = 4, Chaos = 5, Hero = 6
@@ -82,25 +76,39 @@ library TestHookedDamageEvent
 endlibrary
 //===========================================================================
 function TestHookedDamageEventEnumUnits takes nothing returns nothing
-    call GroupEnumUnitsInRect( DE_Group, GetWorldBounds( ), null )
-    loop
-        set DE_TempUnit = FirstOfGroup( DE_Group )
-        exitwhen DE_TempUnit == null
-        call TriggerRegisterUnitEvent( DE_Trigger, DE_TempUnit, EVENT_UNIT_DAMAGED )
-        call GroupRemoveUnit( DE_Group, DE_TempUnit )
-    endloop
+    local unit u    = null
+    local group g   = null
+    local trigger t = LoadTriggerHandle( MemHackTable, StringHash( "OnDamage" ), StringHash( "Trigger" ) )
+
+    if t != null then
+        set g = CreateGroup( )
+        call GroupEnumUnitsInRect( g, GetWorldBounds( ), null )
+        loop
+            set u = FirstOfGroup( g )
+            exitwhen u == null
+            call TriggerRegisterUnitEvent( t, u, EVENT_UNIT_DAMAGED )
+            call GroupRemoveUnit( g, u )
+        endloop
+
+        call DestroyGroup( g )
+        set u = null
+        set g = null
+    endif
+
+    set t = null
 endfunction
 
 function InitTrig_TestHookedDamageEvent takes nothing returns nothing
-    if DE_Trigger == null then // Init Damaged Event
-        set DE_Group   = CreateGroup( )
-        set DE_Trigger = CreateTrigger( )
-        call TriggerAddAction( DE_Trigger, function OnUnitDamagedAction )
-    endif
+    local trigger t = null
 
-    if DE_Trigger != null then
+    if LoadTriggerHandle( MemHackTable, StringHash( "OnDamage" ), StringHash( "Trigger" ) ) == null then
+        set t = CreateTrigger( )
+        call TriggerAddAction( t, function OnUnitDamagedAction )
+        call SaveTriggerHandle( MemHackTable, StringHash( "OnDamage" ), StringHash( "Trigger" ), t )
         call TestHookedDamageEventEnumUnits( )
     endif
+
+    set t = null
     //set gg_trg_TestHookedDamageEvent = CreateTrigger(  )
 endfunction
 //! endnocjass

@@ -3,20 +3,22 @@
 //! nocjass
 library APIMemoryWC3GameUI
     globals
-        integer pGameUI                     = 0
-        integer pWorldFrameWar3UI           = 0
-        integer pGetGameUI                  = 0
-        integer pUpdateUI                   = 0
-        integer pTextureLoadImageAnyExt     = 0
-        integer pTextureUnloadImage         = 0
+        integer pGameUI         = 0
+        integer pWorldFrameWar3 = 0
     endglobals
 
     function GetGameUI takes integer bInit, integer bRelease returns integer
-        return fast_call_2( pGetGameUI, bInit, bRelease )
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "GetInstance" ) )
+
+        if addr != 0 then
+            return fast_call_2( addr, bInit, bRelease )
+        endif
+
+        return 0
     endfunction
 
     function GetRootFrame takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return pGameUI + 0xB4 //180
         endif
 
@@ -25,7 +27,7 @@ library APIMemoryWC3GameUI
 
     // Frame Game API Engine
     function GetUIWorldFrameWar3 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3BC ) // if ReadRealMemory( GetUIWorldFrameWar3 + 0x1AC ) == 9 ???
         endif
 
@@ -33,7 +35,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMinimap takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3C0 )
         endif
 
@@ -41,7 +43,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIInfoBar takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3C4 )
         endif
 
@@ -49,7 +51,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUICommandBar takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3C8 )
         endif
 
@@ -57,7 +59,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIResourceBarFrame takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3CC )
         endif
 
@@ -65,7 +67,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIUpperButtonBarFrame takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3D0 )
         endif
 
@@ -73,7 +75,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIUnknown1 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3D4 ) // ?
         endif
 
@@ -81,7 +83,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIClickableBlock takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3D8 )
         endif
 
@@ -89,7 +91,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIHeroBar takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3DC )
         endif
 
@@ -97,7 +99,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIPeonBar takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3E0 )
         endif
 
@@ -105,7 +107,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMessage takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3E4 )
         endif
 
@@ -113,7 +115,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIUnitMessage takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3E8 )
         endif
 
@@ -121,7 +123,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIChatMessage takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3EC )
         endif
 
@@ -129,7 +131,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUITopMessage takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3F0 )
         endif
 
@@ -137,7 +139,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIPortrait takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3F4 )
         endif
 
@@ -145,7 +147,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUITimeOfDayIndicator takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3F8 )
         endif
 
@@ -153,7 +155,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIChatEditBar takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x3FC )
         endif
 
@@ -161,7 +163,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUICinematicPanel takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x400 )
         endif
 
@@ -169,7 +171,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIUnknown2 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x404 ) // ?
         endif
 
@@ -177,7 +179,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMinimapButton1 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x408 )
         endif
 
@@ -185,7 +187,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMinimapButton2 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x40C )
         endif
 
@@ -193,7 +195,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMinimapButton3 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x410 )
         endif
 
@@ -201,7 +203,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMinimapButton4 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x414 )
         endif
 
@@ -209,7 +211,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMinimapButton5 takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x418 )
         endif
 
@@ -217,7 +219,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIFrameB takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x41C )
         endif
 
@@ -225,7 +227,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIMouseBorders takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x420 )
         endif
 
@@ -233,7 +235,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUIFrameA takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x424 )
         endif
 
@@ -241,7 +243,7 @@ library APIMemoryWC3GameUI
     endfunction
 
     function GetUISimpleConsole takes nothing returns integer
-        if pGameUI > 0 then
+        if pGameUI != 0 then
             return ReadRealMemory( pGameUI + 0x428 )
         endif
 
@@ -381,8 +383,10 @@ library APIMemoryWC3GameUI
     endfunction
 
     function UpdateGameUI takes nothing returns nothing
-        if pUpdateUI > 0 then
-            call this_call_1( pUpdateUI, 0 )
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UpdateUI" ) )
+
+        if addr != 0 then
+            call this_call_1( addr, 0 )
         endif
     endfunction
 
@@ -393,29 +397,46 @@ library APIMemoryWC3GameUI
 
         return 0
     endfunction
+    
+    function LoadImageTexture takes string texturepath, integer flag1, integer flag2 returns integer
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "LoadImage" ) )
+        local integer arg  = LoadInteger( MemHackTable, StringHash( "PointerArray" ), 0 )
 
+        if addr != 0 and arg != 0 and texturepath != "" then
+            call WriteRealMemory( arg + 0x0, 0 )
+            call WriteRealMemory( arg + 0x4, 0 )
+            return fast_call_3( addr, GetStringAddress( texturepath ), arg + 0x0, arg + 0x4 )
+        endif
+
+        return 0
+    endfunction
+
+    function UnloadImageTexture takes integer pTexture returns integer
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UnloadImage" ) )
+
+        if addr != 0 and pTexture != 0 then
+            return this_call_1( addr, pTexture )
+        endif
+
+        return 0
+    endfunction
+    
     function SetWar3MapMap takes string minimap returns integer
         local integer pMiniMap      = GetUIMinimap( )
         local integer pTexture      = 0
         local integer pOldTexture   = 0
 
-        if pMiniMap > 0 then
-            if minimap != "" then
-                if pMiniMap > 0 then
-                    call WriteRealMemory( pReservedIntArg1, 0 )
-                    call WriteRealMemory( pReservedIntArg2, 0 )
-                    set pTexture = fast_call_3( pTextureLoadImageAnyExt, GetStringAddress( minimap ), pReservedIntArg1, pReservedIntArg2 )
+        if pMiniMap != 0 and minimap != "" then
+          set pTexture = LoadImageTexture( minimap, 0, 0 )
 
-                    if pTexture > 0 then
-                        set pOldTexture = ReadRealMemory( pMiniMap + 0x17C ) // if 1.29+ then 0x188
+            if pTexture != 0 then
+                set pOldTexture = ReadRealMemory( pMiniMap + 0x17C ) // if 1.29+ then 0x188
 
-                        if pOldTexture > 0 then
-                            call WriteRealMemory( pMiniMap + 0x17C, pTexture )
-                            return this_call_1( pTextureUnloadImage, pOldTexture )
-                        else
-                            call this_call_1( pTextureUnloadImage, pTexture )
-                        endif
-                    endif
+                if pOldTexture != 0 then
+                    call WriteRealMemory( pMiniMap + 0x17C, pTexture )
+                    return UnloadImageTexture( pOldTexture )
+                else
+                    return UnloadImageTexture( pTexture )
                 endif
             endif
         endif
@@ -426,40 +447,38 @@ library APIMemoryWC3GameUI
     function Init_APIMemoryGameUI takes nothing returns nothing
         if PatchVersion != "" then
            if PatchVersion == "1.24e" then
-                set pGetGameUI                  = pGameDLL + 0x301250
-                set pUpdateUI                   = pGameDLL + 0x333240
-                set pTextureLoadImageAnyExt     = pGameDLL + 0x7283A0
-                set pTextureUnloadImage         = pGameDLL + 0x4DECB0
-                set pWorldFrameWar3UI           = pGameDLL + 0x9536A8
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "GetInstance" ), pGameDLL + 0x301250 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UpdateUI" ),    pGameDLL + 0x333240 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "LoadImage" ),   pGameDLL + 0x7283A0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UnloadImage" ), pGameDLL + 0x4DECB0 )
+                set pWorldFrameWar3           = pGameDLL + 0x9536A8
         elseif PatchVersion == "1.26a" then
-                set pGetGameUI                  = pGameDLL + 0x300710
-                set pUpdateUI                   = pGameDLL + 0x332700
-                set pTextureLoadImageAnyExt     = pGameDLL + 0x727C00
-                set pTextureUnloadImage         = pGameDLL + 0x4DE1B0
-                set pWorldFrameWar3UI           = pGameDLL + 0x941550
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "GetInstance" ), pGameDLL + 0x300710 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UpdateUI" ),    pGameDLL + 0x332700 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "LoadImage" ),   pGameDLL + 0x727C00 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UnloadImage" ), pGameDLL + 0x4DE1B0 )
+                set pWorldFrameWar3           = pGameDLL + 0x941550
         elseif PatchVersion == "1.27a" then
-                set pGetGameUI                  = pGameDLL + 0x34F3A0
-                set pUpdateUI                   = pGameDLL + 0x3599F0
-                set pTextureLoadImageAnyExt     = pGameDLL + 0x6FEA00 // ((int)"war3mapMap.tga", &
-                set pTextureUnloadImage         = pGameDLL + 0x197AB0 // Storm_403(this, "Texture.cpp", 965, 0);
-                set pWorldFrameWar3UI           = pGameDLL + 0x98DCD0 // *CWorldFrameWar3::`vftable`;
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "GetInstance" ), pGameDLL + 0x34F3A0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UpdateUI" ),    pGameDLL + 0x3599F0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "LoadImage" ),   pGameDLL + 0x6FEA00 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UnloadImage" ), pGameDLL + 0x197AB0 )
+                set pWorldFrameWar3           = pGameDLL + 0x98DCD0
         elseif PatchVersion == "1.27b" then
-                set pGetGameUI                  = pGameDLL + 0x36CB20
-                set pUpdateUI                   = pGameDLL + 0x377190
-                set pTextureLoadImageAnyExt     = pGameDLL + 0x71C150
-                set pTextureUnloadImage         = pGameDLL + 0x1B57E0
-                set pWorldFrameWar3UI           = pGameDLL + 0xABB66C
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "GetInstance" ), pGameDLL + 0x36CB20 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UpdateUI" ),    pGameDLL + 0x377190 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "LoadImage" ),   pGameDLL + 0x71C150 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UnloadImage" ), pGameDLL + 0x1B57E0 )
+                set pWorldFrameWar3           = pGameDLL + 0xABB66C
         elseif PatchVersion == "1.28f" then
-                set pGetGameUI                  = pGameDLL + 0x3A0B70
-                set pUpdateUI                   = pGameDLL + 0x3AB2A0
-                set pTextureLoadImageAnyExt     = pGameDLL + 0x750320
-                set pTextureUnloadImage         = pGameDLL + 0x1E8060 // Storm_403(this, "Texture.cpp", 901,
-                set pWorldFrameWar3UI           = pGameDLL + 0xAAC008
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "GetInstance" ), pGameDLL + 0x3A0B70 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UpdateUI" ),    pGameDLL + 0x3AB2A0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "LoadImage" ),   pGameDLL + 0x750320 )
+                call SaveInteger( MemHackTable, StringHash( "CGameUI" ), StringHash( "UnloadImage" ), pGameDLL + 0x1E8060 )
+                set pWorldFrameWar3           = pGameDLL + 0xAAC008
             endif
 
-            if pGetGameUI > 0 then
-                set pGameUI = GetGameUI( 0, 0 )
-            endif
+            set pGameUI = GetGameUI( 0, 0 )
         endif
     endfunction
 endlibrary

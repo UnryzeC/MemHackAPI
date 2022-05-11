@@ -1,22 +1,38 @@
-//TESH.scrollpos=133
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCFrameAPI
-    globals
-        integer pStringManager                  = 0
-        integer pFDFHashTableList               = 0
-        integer pStringHashNodeGrowListArray    = 0
-        integer pBaseFrameHashNodeGrowListArray = 0
-        integer pReadTOCFile                    = 0
-        integer pDefaultCStatus                 = 0
-        integer pGetCFrameByName                = 0
-        integer pCreateCFrame                   = 0
-    endglobals
+    function CreateCFrameByTagNameEx takes string baseframe, integer parent, integer unk1, integer createContext, integer priority returns integer
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "CreateByTagName" ) )
+
+        if addr != 0 and baseframe != "" then
+            return fast_call_5( addr, GetStringAddress( baseframe ), parent, unk1, createContext, priority )
+        endif
+
+        return 0
+    endfunction
+
+    function CreateCFrameByTagName takes string baseframe, integer parent, integer id returns integer
+        return CreateCFrameByTagNameEx( baseframe, parent, 0, 0, id )
+    endfunction
+
+    function GetCFrameByName takes string name, integer id returns integer
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "GetByName" ) )
+
+        if addr != 0 and name != "" then
+            return fast_call_2( addr, GetStringAddress( name ), id )
+        endif
+
+        return 0
+    endfunction
 
     function SetStringHashNodeListSize takes integer size returns boolean
-        if pStringHashNodeGrowListArray != 0 and pStringManager != 0 then
-            if ReadRealMemory( pStringManager + 0x14 ) < size then // if 1.29+ + 0x18
-                call this_call_2( pStringHashNodeGrowListArray, pStringManager, size )
+        local integer addr1 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowStringHashNode" ) )
+        local integer addr2 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ) )
+
+        if addr1 != 0 and addr2 != 0 then
+            if ReadRealMemory( addr2 + 0x14 ) < size then // if 1.29+ + 0x18
+                call this_call_2( addr1, addr2, size )
             endif
 
             return true
@@ -26,9 +42,12 @@ library MemoryHackCFrameAPI
     endfunction
     
     function SetBaseFrameHashNodeListSize takes integer size returns boolean
-        if pBaseFrameHashNodeGrowListArray != 0 and pFDFHashTableList != 0 then
-            if ReadRealMemory( pFDFHashTableList + 0x14 ) < size then // if 1.29+ + 0x18
-                call this_call_2( pBaseFrameHashNodeGrowListArray, pFDFHashTableList, size )
+        local integer addr1 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowFrameHashNode" ) )
+        local integer addr2 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ) )
+
+        if addr1 != 0 and addr2 != 0 then
+            if ReadRealMemory( addr2 + 0x14 ) < size then // if 1.29+ + 0x18
+                call this_call_2( addr1, addr2, size )
             endif
 
             return true
@@ -38,38 +57,18 @@ library MemoryHackCFrameAPI
     endfunction
     
     function LoadTOCFile takes string filename returns integer
+        local integer addr1 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "ReadTOCFile" ) )
+        local integer addr2 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "DefaultCStatus" ) )
+        local integer addr3 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ) )
+        local integer addr4 = LoadInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ) )
         local integer retval = 0
 
-        if pReadTOCFile != 0 and pDefaultCStatus != 0 and SetStringHashNodeListSize( 0xFFFF ) and SetBaseFrameHashNodeListSize( 0xFFFF ) then
-            set retval = fast_call_4( pReadTOCFile, GetStringAddress( filename ), pStringManager, pFDFHashTableList, pDefaultCStatus )
+        if addr1 != 0 and addr2 != 0 and SetStringHashNodeListSize( 0xFFFF ) and SetBaseFrameHashNodeListSize( 0xFFFF ) then
+            set retval = fast_call_4( addr1, GetStringAddress( filename ), addr3, addr4, addr2 )
             //call ReallocateCallMemory( ) // no longer needed, now also causes crash, as the data integrity even after TOC call is fine.
         endif
 
         return retval
-    endfunction
-
-    function GetCFrameByName takes string name, integer id returns integer
-        if pGetCFrameByName > 0 then
-            if name != "" then
-                return fast_call_2( pGetCFrameByName, GetStringAddress( name ), id )
-            endif
-        endif
-
-        return 0
-    endfunction
-
-    function CreateCFrameEx takes string baseframe, integer parent, integer point, integer relativepoint, integer id returns integer
-        if pCreateCFrame > 0 then
-            if baseframe != "" then
-                return fast_call_5( pCreateCFrame, GetStringAddress( baseframe ), parent, point, relativepoint, id )
-            endif
-        endif
-
-        return 0
-    endfunction
-
-    function CreateCFrame takes string baseframe, integer parent, integer id returns integer
-        return CreateCFrameEx( baseframe, parent, 0, 0, id )
     endfunction
 
     function GetFrameLayoutByType takes integer pFrame, integer fid returns integer
@@ -103,51 +102,55 @@ library MemoryHackCFrameAPI
     function Init_MemHackCFrameAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
-                set pDefaultCStatus                 = pGameDLL + 0xAA2824
-                set pStringManager                  = pGameDLL + 0xAE4074
-                set pFDFHashTableList               = pGameDLL + 0xAE40C4
-                set pStringHashNodeGrowListArray    = pGameDLL + 0x5CB150
-                set pBaseFrameHashNodeGrowListArray = pGameDLL + 0x5D5DF0
-                set pReadTOCFile                    = pGameDLL + 0x5D9580
-                set pGetCFrameByName                = pGameDLL + 0x5FB110
-                set pCreateCFrame                   = pGameDLL + 0x5C9D00
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "CreateByTagName" ),       pGameDLL + 0x5C9D00 )
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "GetByName" ),             pGameDLL + 0x5FB110 )
+
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "DefaultCStatus" ),     pGameDLL + 0xAA2824 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ),      pGameDLL + 0xAE4074 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ),        pGameDLL + 0xAE40C4 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowStringHashNode" ), pGameDLL + 0x5CB150 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowFrameHashNode" ),  pGameDLL + 0x5D5DF0 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "ReadTOCFile" ),        pGameDLL + 0x5D9580 )
         elseif PatchVersion == "1.26a" then
-                set pDefaultCStatus                 = pGameDLL + 0xA8C804
-                set pStringManager                  = pGameDLL + 0xACD214
-                set pFDFHashTableList               = pGameDLL + 0xACD264
-                set pStringHashNodeGrowListArray    = pGameDLL + 0x5CA9B0
-                set pBaseFrameHashNodeGrowListArray = pGameDLL + 0x5D5650
-                set pReadTOCFile                    = pGameDLL + 0x5D8DE0
-                set pDefaultCStatus                 = pGameDLL + 0xA8C804
-                set pGetCFrameByName                = pGameDLL + 0x5FA970
-                set pCreateCFrame                   = pGameDLL + 0x5C9560
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "CreateByTagName" ),       pGameDLL + 0x5C9560 )
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "GetByName" ),             pGameDLL + 0x5FA970 )
+
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "DefaultCStatus" ),     pGameDLL + 0xA8C804 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ),      pGameDLL + 0xACD214 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ),        pGameDLL + 0xACD264 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowStringHashNode" ), pGameDLL + 0x5CA9B0 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowFrameHashNode" ),  pGameDLL + 0x5D5650 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "ReadTOCFile" ),        pGameDLL + 0x5D8DE0 )
         elseif PatchVersion == "1.27a" then
-                set pDefaultCStatus                 = pGameDLL + 0xB662CC
-                set pStringManager                  = pGameDLL + 0xBB9CAC
-                set pFDFHashTableList               = pGameDLL + 0xBB9CFC
-                set pStringHashNodeGrowListArray    = pGameDLL + 0x067560
-                set pBaseFrameHashNodeGrowListArray = pGameDLL + 0x066ED0
-                set pReadTOCFile                    = pGameDLL + 0x066590
-                set pGetCFrameByName                = pGameDLL + 0x09EF40
-                set pCreateCFrame                   = pGameDLL + 0x0909C0
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "CreateByTagName" ),       pGameDLL + 0x0909C0 )
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "GetByName" ),             pGameDLL + 0x09EF40 )
+
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "DefaultCStatus" ),     pGameDLL + 0xB662CC )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ),      pGameDLL + 0xBB9CAC )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ),        pGameDLL + 0xBB9CFC )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowStringHashNode" ), pGameDLL + 0x067560 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowFrameHashNode" ),  pGameDLL + 0x066ED0 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "ReadTOCFile" ),        pGameDLL + 0x066590 )
         elseif PatchVersion == "1.27b" then
-                set pDefaultCStatus                 = pGameDLL + 0xCE3A4C
-                set pStringManager                  = pGameDLL + 0xD47744
-                set pFDFHashTableList               = pGameDLL + 0xD47794
-                set pStringHashNodeGrowListArray    = pGameDLL + 0x0BB550
-                set pBaseFrameHashNodeGrowListArray = pGameDLL + 0x0BAEC0
-                set pReadTOCFile                    = pGameDLL + 0x0BA580
-                set pGetCFrameByName                = pGameDLL + 0x0F2CA0
-                set pCreateCFrame                   = pGameDLL + 0x0E4740
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "CreateByTagName" ),       pGameDLL + 0x0E4740 )
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "GetByName" ),             pGameDLL + 0x0F2CA0 )
+
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "DefaultCStatus" ),     pGameDLL + 0xCE3A4C )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ),      pGameDLL + 0xD47744 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ),        pGameDLL + 0xD47794 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowStringHashNode" ), pGameDLL + 0x0BB550 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowFrameHashNode" ),  pGameDLL + 0x0BAEC0 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "ReadTOCFile" ),        pGameDLL + 0x0BA580 )
         elseif PatchVersion == "1.28f" then
-                set pDefaultCStatus                 = pGameDLL + 0xCB1A94
-                set pStringManager                  = pGameDLL + 0xD0F524
-                set pFDFHashTableList               = pGameDLL + 0xD0F574
-                set pStringHashNodeGrowListArray    = pGameDLL + 0x0E9D40
-                set pBaseFrameHashNodeGrowListArray = pGameDLL + 0x0E96B0
-                set pReadTOCFile                    = pGameDLL + 0x0E8D70
-                set pGetCFrameByName                = pGameDLL + 0x1212F0
-                set pCreateCFrame                   = pGameDLL + 0x112D90
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "CreateByTagName" ),       pGameDLL + 0x112D90 )
+                call SaveInteger( MemHackTable, StringHash( "CFrame" ), StringHash( "GetByName" ),             pGameDLL + 0x1212F0 )
+
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "DefaultCStatus" ),     pGameDLL + 0xCB1A94 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "StringManager" ),      pGameDLL + 0xD0F524 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "FDFHashList" ),        pGameDLL + 0xD0F574 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowStringHashNode" ), pGameDLL + 0x0E9D40 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "GrowFrameHashNode" ),  pGameDLL + 0x0E96B0 )
+                call SaveInteger( MemHackTable, StringHash( "CFrameAPI" ), StringHash( "ReadTOCFile" ),        pGameDLL + 0x0E8D70 )
             endif
         endif
     endfunction

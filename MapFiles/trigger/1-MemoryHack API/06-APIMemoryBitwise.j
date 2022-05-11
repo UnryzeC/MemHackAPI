@@ -1,18 +1,15 @@
-//TESH.scrollpos=119
+//TESH.scrollpos=53
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryBitwise
-    globals
-        integer pBitwiseOR_ExecutableMemory
-        boolean bNeedInitBitwiseOr             = true
-        integer pBitwiseXOR_ExecutableMemory
-        boolean bNeedInitBitwiseXor            = true
-        integer pBitwiseAND_ExecutableMemory
-        boolean bNeedInitBitwiseAnd            = true
-    endglobals
-
     function GetGameTypeSupported takes nothing returns integer
-        return ReadRealPointer2LVL( pGameState, 0x30, 0x30 )
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ) )
+
+        if addr != 0 then
+            return ReadRealPointer2LVL( addr, 0x30, 0x30 )
+        endif
+    
+        return 0
     endfunction
 
     function Player2Flag takes player p returns integer
@@ -40,80 +37,44 @@ library APIMemoryBitwise
     endfunction
 
     function BitwiseOr takes integer arg1, integer arg2 returns integer
-        local integer retval
-     
-        if bNeedInitBitwiseOr then
-            set bNeedInitBitwiseOr = false
-            call WriteRealMemory( pBitwiseOR_ExecutableMemory + 0x0, 0x0424448B )
-            call WriteRealMemory( pBitwiseOR_ExecutableMemory + 0x4, 0x0824548B )
-            call WriteRealMemory( pBitwiseOR_ExecutableMemory + 0x8, 0xCCC3D009 )
+        local integer addr   = LoadInteger( MemHackTable, StringHash( "Bitwise" ), StringHash( "OR" ) )
+
+        if not LoadBoolean( MemHackTable, StringHash( "Bitwise" ), StringHash( "isOR" ) ) then
+            call SaveBoolean( MemHackTable, StringHash( "Bitwise" ), StringHash( "isOR" ), true )
+            call WriteRealMemory( addr + 0x0, 0x0424448B )
+            call WriteRealMemory( addr + 0x4, 0x0824548B )
+            call WriteRealMemory( addr + 0x8, 0xCCC3D009 )
         endif
 
-        if pConvertUnitsOffset == 0 then
-            set pConvertUnitsOffset = CreateJassNativeHook( pConvertUnits, pBitwiseOR_ExecutableMemory )
-        else
-            call WriteRealMemory( pConvertUnitsOffset, pBitwiseOR_ExecutableMemory )
-        endif
-     
-        if pConvertUnitsOffset != 0 then
-            set retval = B2I( ConvertUnits( arg1,arg2 ) )
-            call WriteRealMemory( pConvertUnitsOffset, pConvertUnits )
-            return retval
-        endif
-
-        return 0
+        return BitwiseOperation( addr, arg1, arg2 )
     endfunction
 
     function BitwiseXor takes integer arg1, integer arg2 returns integer
-        local integer retval
-     
-        if bNeedInitBitwiseXor then
-            set bNeedInitBitwiseXor = false
-            call WriteRealMemory( pBitwiseXOR_ExecutableMemory + 0x0, 0x0424448B )
-            call WriteRealMemory( pBitwiseXOR_ExecutableMemory + 0x4, 0x0824548B )
-            call WriteRealMemory( pBitwiseXOR_ExecutableMemory + 0x8, 0xCCC3D031 )
-        endif
-     
-        if pConvertUnitsOffset == 0 then
-            set pConvertUnitsOffset = CreateJassNativeHook( pConvertUnits, pBitwiseXOR_ExecutableMemory )
-        else
-            call WriteRealMemory( pConvertUnitsOffset, pBitwiseXOR_ExecutableMemory )
-        endif
-     
-        if pConvertUnitsOffset != 0 then
-            set retval = B2I( ConvertUnits( arg1,arg2 ) )
-            call WriteRealMemory( pConvertUnitsOffset, pConvertUnits )
-            return retval
+        local integer addr   = LoadInteger( MemHackTable, StringHash( "Bitwise" ), StringHash( "XOR" ) )
+
+        if not LoadBoolean( MemHackTable, StringHash( "Bitwise" ), StringHash( "isXOR" ) ) then
+            call SaveBoolean( MemHackTable, StringHash( "Bitwise" ), StringHash( "isXOR" ), true )
+            call WriteRealMemory( addr + 0x0, 0x0424448B )
+            call WriteRealMemory( addr + 0x4, 0x0824548B )
+            call WriteRealMemory( addr + 0x8, 0xCCC3D031 )
         endif
 
-        return 0
+        return BitwiseOperation( addr, arg1, arg2 )
     endfunction
 
     function BitwiseAnd takes integer arg1, integer arg2 returns integer
-        local integer retval
-     
-        if bNeedInitBitwiseAnd then
-            set bNeedInitBitwiseAnd = false
-            call WriteRealMemory( pBitwiseAND_ExecutableMemory + 0x0, 0x0424448B )
-            call WriteRealMemory( pBitwiseAND_ExecutableMemory + 0x4, 0x0824548B )
-            call WriteRealMemory( pBitwiseAND_ExecutableMemory + 0x8, 0xCCC3D021 )
+        local integer addr   = LoadInteger( MemHackTable, StringHash( "Bitwise" ), StringHash( "AND" ) )
+
+        if not LoadBoolean( MemHackTable, StringHash( "Bitwise" ), StringHash( "isAND" ) ) then
+            call SaveBoolean( MemHackTable, StringHash( "Bitwise" ), StringHash( "isAND" ), true )
+            call WriteRealMemory( addr + 0x0, 0x0424448B )
+            call WriteRealMemory( addr + 0x4, 0x0824548B )
+            call WriteRealMemory( addr + 0x8, 0xCCC3D021 )
         endif
 
-        if pConvertUnitsOffset == 0 then
-            set pConvertUnitsOffset = CreateJassNativeHook( pConvertUnits, pBitwiseAND_ExecutableMemory )
-        else
-            call WriteRealMemory( pConvertUnitsOffset, pBitwiseAND_ExecutableMemory )
-        endif
-     
-        if pConvertUnitsOffset != 0 then
-            set retval = B2I( ConvertUnits( arg1,arg2 ) )
-            call WriteRealMemory( pConvertUnitsOffset, pConvertUnits )
-            return retval
-        endif
-
-        return 0
+        return BitwiseOperation( addr, arg1, arg2 )
     endfunction
-    
+
     function Init_APIMemoryBitwise takes nothing returns nothing
         local integer i = 0
 
@@ -125,17 +86,9 @@ library APIMemoryBitwise
         elseif PatchVersion == "1.28f" then
             endif
 
-            set pBitwiseOR_ExecutableMemory  = AllocateExecutableMemory( 0xC )
-            set pBitwiseXOR_ExecutableMemory = AllocateExecutableMemory( 0xC )
-            set pBitwiseAND_ExecutableMemory = AllocateExecutableMemory( 0xC )
-            
-            loop
-                exitwhen i > 0x8
-                call WriteRealMemory( pBitwiseOR_ExecutableMemory + i, 0 )
-                call WriteRealMemory( pBitwiseXOR_ExecutableMemory + i, 0 )
-                call WriteRealMemory( pBitwiseAND_ExecutableMemory + i, 0 )
-                set i = i + 4
-            endloop
+            call AllocExecMemEx( "Bitwise",  "OR", 0xC )
+            call AllocExecMemEx( "Bitwise", "XOR", 0xC )
+            call AllocExecMemEx( "Bitwise", "AND", 0xC )
         endif
     endfunction
 endlibrary

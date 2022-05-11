@@ -7,46 +7,58 @@ library APIBasicUtils
         constant string sLetters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     endglobals
 
-    function iabs takes integer number returns integer
+    function absI takes integer number returns integer
         if number < 0 then
             return -number
         endif
 
         return number
     endfunction
-    
-    function fabs takes real r returns real
-        if r < 0 then
+
+    function absF takes real r returns real
+        if r < 0. then
             return -r
         endif
 
         return r
     endfunction
-    
-    function floor takes real r returns real
-        if r < 0 then
+
+    function floorF takes real r returns real
+        if r < 0. then
             return -I2R( R2I( -r ) )
         endif
         
         return I2R( R2I( r ) )
     endfunction
-    
-    function ceil takes real r returns real
-        if floor( r ) == r then
+
+    function floorI takes integer i returns integer
+        return R2I( floorF( I2R( i ) ) )
+    endfunction
+
+    function ceilF takes real r returns real
+        if floorF( r ) == r then
             return r
-        elseif r < 0 then
+        elseif r < 0. then
             return -( I2R( R2I( -r ) ) + 1. )
         endif
         
         return I2R( R2I( r ) ) + 1.
     endfunction
-    
-    function round takes real r returns real
-        if r > 0 then
+
+    function ceilI takes integer i returns integer
+        return R2I( ceilF( I2R( i ) ) )
+    endfunction
+
+    function roundF takes real r returns real
+        if r > 0. then
             return I2R( R2I( r + .5 ) )
         endif
         
         return I2R( R2I( r - .5 ) )
+    endfunction
+
+    function roundI takes integer i returns integer
+        return R2I( roundF( I2R( i ) ) )
     endfunction
 
     function log takes integer number, integer base returns integer
@@ -137,7 +149,7 @@ library APIBasicUtils
 
     function GetIntHex takes integer i returns string
         local string result = ""
-        local integer numb  = iabs( i )
+        local integer numb  = absI( i )
 
         if numb >= 0 and numb <= 15 then
             if numb <= 9 then
@@ -163,14 +175,14 @@ library APIBasicUtils
     function IntToHex takes integer i returns string
         local string result = ""
         local boolean ispos = i >= 0
-        local integer numb  = iabs( i )
-        local integer r     = 0
-    
+        local integer numb  = absI( i )
+        local integer j     = 0
+
         loop
             exitwhen numb == 0
-            set r = numb - ( numb / 16 ) * 16
-            set result = GetIntHex( r ) + result
-            set numb = ( numb - r ) / 16
+            set j = numb - ( numb / 16 ) * 16
+            set result = GetIntHex( j ) + result
+            set numb = ( numb - j ) / 16
         endloop
 
         set result = "0x" + result

@@ -1,31 +1,32 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=494
 //TESH.alwaysfold=0
 //! nocjass
+native MergeUnits   takes integer qty, integer a, integer b, integer make returns boolean    // reserved native for call 4 integer function and return BOOLEAN value
+native ConvertUnits takes integer qty, integer id returns boolean                            // reserved native for call 2 integer function and return BOOLEAN value (can be converted to int!)
+native IgnoredUnits takes integer unitid returns integer                                     // reserved native for call 1 integer function and return integer value
+
 library APIMemory
     globals
-    //  integer NULL                        = 0 // Might be used later.
+        constant integer NULL               = 0 // Reserved for developer's ease of use.
+        hashtable MemHackTable              = InitHashtable( )
+
         integer iGameVersion                = 0
+        integer pGameDLL                    = 0
+        string PatchVersion                 = ""
         integer pMemory                     = 0
         integer array RJassNativesBuffer
         integer Memory // This is not used, it's here just to fool Jasshelper
         integer array l__Memory
         integer iBytecodeData
 
-        integer pReservedIntArg1
-        integer pReservedIntArg2
-        integer pReservedIntArg3
-        integer pReservedIntArg4
-
         integer pPointers                   = 0
         integer pWriteMemory                = 0
-        integer pReservedWritableMemory     = 0
-        integer pReservedWritableMemory2    = 0
         integer pJassEnvAddress             = 0
         integer RJassNativesBufferSize      = 0
-        
+
         integer JassVM                      = 0
         integer JassTable                   = 0
-        
+
         integer pUnlockCall1                = 0
         integer pUnlockCall2                = 0
         integer pUnlockJmp1                 = 0
@@ -146,10 +147,6 @@ library APIMemory
             return 0
         endif
 
-        if pGetUnitCountOffset != 0 then
-            return GetUnitCount( address )
-        endif
-
         if address / 4 * 4 != address then
             return ReadRealMemorySafe( address )
         else
@@ -208,11 +205,6 @@ library APIMemory
         if address == pWriteMemory then
             return
         endif
-
-        if pAttackMoveXYOffset != 0 then
-            call AttackMoveXY( address, value )
-            return
-        endif        
 
         if address / 4 * 4 != address then
             call WriteRealMemorySafe( address, value )
@@ -488,6 +480,81 @@ library APIMemory
         return 0
     endfunction
 
+    function BitwiseOperation takes integer memaddr, integer arg1, integer arg2 returns integer
+        local integer addr     = LoadInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "ConvertUnits" ) )
+        local integer func     = LoadInteger( MemHackTable, StringHash( "MemCall" ), StringHash( "ConvertUnits" ) )
+        local integer retval   = 0
+
+        if addr != 0 and memaddr != 0 then
+            if func == 0 then
+                set func = CreateJassNativeHook( addr, memaddr )
+                call SaveInteger( MemHackTable, StringHash( "MemCall" ), StringHash( "ConvertUnits" ), func )
+            endif
+
+            if func != 0 then
+                call WriteRealMemory( func, memaddr )
+                set retval = B2I( ConvertUnits( arg1, arg2 ) )
+                call WriteRealMemory( func, addr )
+            endif
+        endif
+
+        return retval
+    endfunction
+    
+    function ExecuteBytecode takes integer memaddr returns integer
+        local integer addr     = LoadInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "IgnoredUnits" ) )
+        local integer func     = LoadInteger( MemHackTable, StringHash( "MemCall" ), StringHash( "IgnoredUnits" ) )
+        local integer pOffset1 = 0
+
+        if addr != 0 and memaddr != 0 then
+            if func == 0 then
+                set func = CreateJassNativeHook( addr, memaddr )
+                call SaveInteger( MemHackTable, StringHash( "MemCall" ), StringHash( "IgnoredUnits" ), func )
+            endif
+
+            if func != 0 then
+                call WriteRealMemory( func, memaddr )
+                set pOffset1 = IgnoredUnits( 0 )
+                call WriteRealMemory( func, addr )
+            endif
+        endif
+
+        return pOffset1
+    endfunction    
+
+    function AllocateExecutableMemory takes integer size returns integer
+        local integer addr   = LoadInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "MergeUnits" ) )
+        local integer func   = LoadInteger( MemHackTable, StringHash( "MemCall" ), StringHash( "MergeUnits" ) )
+        local integer valloc = LoadInteger( MemHackTable, StringHash( "Kernel32.dll" ), StringHash( "VirtualAlloc" ) )
+        local integer retval = 0
+
+        if valloc != 0 and addr != 0 then
+            if func == 0 then
+                set func = CreateJassNativeHook( addr, valloc )
+                call SaveInteger( MemHackTable, StringHash( "MemCall" ), StringHash( "MergeUnits" ), func )
+            endif
+
+            if func != 0 then
+                call WriteRealMemory( func, valloc )
+                set retval = B2I( MergeUnits( 0, size + 4, 0x3000, 0x40 ) ) // addr (leave as 0 for autogeneration), size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
+                call WriteRealMemory( func, addr )
+            endif
+
+            if retval != 0 then
+                return ( retval + 0x4 ) / 4 * 4
+            endif
+        endif
+
+        return 0
+    endfunction
+
+    function AllocatePointerArray takes string name, integer id, integer size returns nothing
+        if not HaveSavedInteger( MemHackTable, StringHash( name ), id ) then
+            call SaveInteger( MemHackTable, StringHash( name ), id, Malloc( size ) )
+            call SaveInteger( MemHackTable, StringHash( name + "Size" ), id, size )
+        endif
+    endfunction
+
     //# +nosemanticerror
     function InitMemoryArray takes integer id, integer val returns nothing
         set l__Memory[ id ] = val
@@ -608,6 +675,8 @@ library APIMemory
             set pUnlockCall2    = pGameDLL + 0x152802
             set pUnlockJmp1     = pGameDLL + 0x6B8D30
             set IsExtra         = true
+        else
+            set iGameVersion    = 0
         endif
 
         // The bytecode unlocks the ability to read and write memory
@@ -624,11 +693,49 @@ library APIMemory
     function Init_APIMemory takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "MergeUnits" ),   pGameDLL + 0x2DDE40 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "IgnoredUnits" ), pGameDLL + 0x2DD9A0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "ConvertUnits" ), pGameDLL + 0x2DDE00 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "GetUnitCount" ), pGameDLL + 0x2DDB70 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "AttackMoveXY" ), pGameDLL + 0x2DE730 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadInteger" ),  pGameDLL + 0x3CB5D0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadBoolean" ),  pGameDLL + 0x3CB650 )
         elseif PatchVersion == "1.26a" then
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "MergeUnits" ),   pGameDLL + 0x2DD320 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "IgnoredUnits" ), pGameDLL + 0x2DCE80 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "ConvertUnits" ), pGameDLL + 0x2DD2E0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "GetUnitCount" ), pGameDLL + 0x2DD050 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "AttackMoveXY" ), pGameDLL + 0x2DDC10 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadInteger" ),  pGameDLL + 0x3CAA90 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadBoolean" ),  pGameDLL + 0x3CAB10 )
         elseif PatchVersion == "1.27a" then
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "MergeUnits" ),   pGameDLL + 0x891F20 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "IgnoredUnits" ), pGameDLL + 0x890FB0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "ConvertUnits" ), pGameDLL + 0x88E350 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "GetUnitCount" ), pGameDLL + 0x890750 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "AttackMoveXY" ), pGameDLL + 0x88CFE0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadInteger" ),  pGameDLL + 0x1F0710 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadBoolean" ),  pGameDLL + 0x1F04D0 )
         elseif PatchVersion == "1.27b" then
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "MergeUnits" ),   pGameDLL + 0x9BD020 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "IgnoredUnits" ), pGameDLL + 0x9BC0B0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "ConvertUnits" ), pGameDLL + 0x9B9450 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "GetUnitCount" ), pGameDLL + 0x9BB850 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "AttackMoveXY" ), pGameDLL + 0x9B80E0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadInteger" ),  pGameDLL + 0x20E150 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadBoolean" ),  pGameDLL + 0x20DF10 )
         elseif PatchVersion == "1.28f" then
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "MergeUnits" ),   pGameDLL + 0x971FB0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "IgnoredUnits" ), pGameDLL + 0x971040 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "ConvertUnits" ), pGameDLL + 0x96E3E0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "GetUnitCount" ), pGameDLL + 0x9707E0 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "AttackMoveXY" ), pGameDLL + 0x96D070 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadInteger" ),  pGameDLL + 0x240940 )
+                call SaveInteger( MemHackTable, StringHash( "JassNative" ), StringHash( "LoadBoolean" ),  pGameDLL + 0x240700 )
             endif
+
+            call AllocatePointerArray( "StringArray", 0, 3000 )
+            call AllocatePointerArray( "PointerArray", 0, 0x10 )
         endif
     endfunction
 endlibrary

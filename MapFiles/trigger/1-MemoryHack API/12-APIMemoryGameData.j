@@ -1,26 +1,9 @@
-//TESH.scrollpos=309
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryGameData
     globals
-        integer pGameState          = 0
-        integer pGameClass1         = 0
-        integer pGetUnitAddress     = 0
-        integer pGetHandleId        = 0
-        integer pHandleIdToObject   = 0
-        integer pObjectToHandleId   = 0
-        integer pGetHashKey         = 0
-        integer pGetDataNode        = 0
-        integer pGetUIDataNode      = 0
-        integer pGetWidgetUIDef     = 0
-        integer pGetAgentUIDef      = 0
-        integer pToJUnit            = 0
-        integer pGetObjectFromHash  = 0
-
         hashtable htObjectDataPointers = InitHashtable( )
-        
-        integer pVector2Arg                 = 0
-        integer pVector3Arg                 = 0
     endglobals
 
     function SaveCode takes hashtable ht, integer parentKey, integer childKey, code c returns nothing
@@ -36,10 +19,20 @@ library APIMemoryGameData
 
         return null
     endfunction
+    
+    function GetGameStateInstance takes nothing returns integer
+        return LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ) )
+    endfunction
+
+    function GetTempestThread takes nothing returns integer
+        return LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "TempestThread" ) )
+    endfunction
 
     function ConvertHandleId takes integer handleid returns integer
-        if handleid > 0 then
-            return ReadRealMemory( ReadRealMemory( ReadRealMemory( ReadRealMemory( pGameState ) + 0x1C ) + 0x19C ) + handleid * 0xC - 0x2FFFFF * 4 )
+        local integer addr = GetGameStateInstance( )
+
+        if addr != 0 and handleid != 0 then
+            return ReadRealMemory( ReadRealMemory( ReadRealMemory( ReadRealMemory( addr ) + 0x1C ) + 0x19C ) + handleid * 0xC - 0x2FFFFF * 4 )
         endif
 
         return 0
@@ -49,21 +42,34 @@ library APIMemoryGameData
         return ConvertHandleId( GetHandleId( h ) )
     endfunction
 
-    function HandleIdToObject takes integer handleid returns integer
-        local integer pData = this_call_1( pGetHandleId, ReadRealMemory( pGameState ) )
+    function GetGameDataNode takes nothing returns integer
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetDataNode" ) )
+        local integer pData = GetGameStateInstance( )
 
-        if pData > 0 then
-            return this_call_2( pHandleIdToObject, pData, handleid )
+        if addr != 0 and pData != 0 then
+            return this_call_1( addr, pData )
+        endif
+
+        return 0
+    endfunction
+
+    function HandleIdToObject takes integer handleid returns integer
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "ConvertPointer" ) )
+        local integer pData = GetGameDataNode( )
+
+        if addr != 0 and pData != 0 then
+            return this_call_2( addr, pData, handleid )
         endif
         
         return 0
     endfunction
     
-    function ObjectToHandleId takes integer address returns integer
-        local integer pData = this_call_1( pGetHandleId, ReadRealMemory( pGameState ) )
+    function ObjectToHandleId takes integer pAgent returns integer
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GenerateHandle" ) )
+        local integer pData = GetGameDataNode( )
 
-        if pData > 0 then
-            return this_call_3( pObjectToHandleId, pData, address, 0 )
+        if addr != 0 and pData != 0 then
+            return this_call_3( addr, pData, pAgent, 0 )
         endif
         
         return 0
@@ -91,64 +97,80 @@ library APIMemoryGameData
         return null
     endfunction
     
-    function ObjectToUnit takes integer pObject returns unit
-        local integer pUnit = 0
+    function ObjectToUnit takes integer pUnit returns unit
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "CUnitTojUnit" ) )
 
-        if pObject > 0 then
-            set pUnit = fast_call_1( pToJUnit, pObject )
+        if addr != 0 and pUnit != 0 then
+            set pUnit = fast_call_1( addr, pUnit )
 
-            if pUnit > 0 then
+            if pUnit != 0 then
                 return I2U( pUnit )
             endif
         endif
-        
+
         return null
     endfunction
     
     function GetAgentHashKey takes integer agentId returns integer
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetHashKey" ) )
+        local integer arg   = LoadInteger( MemHackTable, StringHash( "PointerArray" ), 0 )
         local integer pData = 0
 
-        if pGetHashKey != 0 and agentId != 0 then
-            call WriteRealMemory( pReservedIntArg1, agentId )
-            set pData = this_call_1( pGetHashKey, pReservedIntArg1 )
+        if addr != 0 and arg != 0 and agentId != 0 then
+            call WriteRealMemory( arg, agentId )
+            set pData = this_call_1( addr, arg )
         endif
 
         return pData
     endfunction
-    
+
+    function GetAgentUIDefById takes integer agentId returns integer // Only use this on Abilities
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileUINode" ) )
+
+        if addr != 0 and agentId != 0 then
+            return this_call_1( addr, agentId )
+        endif
+
+        return 0
+    endfunction
+
     function GetAgileDataNodeById takes integer pDataNode, integer agentId returns integer
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileDataNode" ) )
+        local integer arg   = LoadInteger( MemHackTable, StringHash( "PointerArray" ), 0 )
         local integer pData = GetAgentHashKey( agentId )
 
-        if pGetDataNode != 0 and pData != 0 then
-            return this_call_3( pGetDataNode, pDataNode, pData, pReservedIntArg1 )
+        if addr != 0 and arg != 0 and pData != 0 then
+            return this_call_3( addr, pDataNode, pData, arg )
         endif
 
         return 0
     endfunction
 
     function GetWidgetUIDefById takes integer wid returns integer // Units/Destructables/Items (aka widgets)
-        if pGetWidgetUIDef != 0 and wid != 0 then
-            return this_call_1( pGetWidgetUIDef, wid )
+        local integer addr  = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetWidgetUIDef" ) )
+
+        if addr != 0 and wid != 0 then
+            return this_call_1( addr, wid )
         endif
 
         return 0
     endfunction
 
-    function GetAgentUIDefById takes integer agentId returns integer // Only use this on Abilities
-        if pGetWidgetUIDef != 0 and agentId != 0 then
-            return this_call_1( pGetAgentUIDef, agentId )
+    function jUnitToCUnit takes unit u returns integer // Address formerly
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "jUnitToCUnit" ) )
+
+        if addr != 0 then
+            return this_call_1( addr, GetHandleId( u ) )
         endif
 
         return 0
-    endfunction
-
-    function GetUnitAddress takes unit u returns integer
-        return this_call_1( pGetUnitAddress, GetHandleId( u ) )
     endfunction
 
     function GetCObjectFromHashEx takes integer pHash1, integer pHash2 returns integer // call of sub_6F03FA30 (1.26a)
-        if pHash1 != 0xFFFFFFFF and pHash2 != 0xFFFFFFFF and pGetObjectFromHash > 0 then
-            return fast_call_2( pGetObjectFromHash, pHash1, pHash2 )
+        local integer addr = LoadInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetObjectFromHash" ) )
+
+        if addr != 0 and pHash1 != 0xFFFFFFFF and pHash2 != 0xFFFFFFFF then
+            return fast_call_2( addr, pHash1, pHash2 )
         endif
 
         return 0
@@ -163,30 +185,35 @@ library APIMemoryGameData
     endfunction
 
     function GetCObjectFromHash takes integer pHash1, integer pHash2 returns integer // Jass Variant of sub_6F03FA30 (126a)
+        local integer addr  = GetTempestThread( )
         local integer pOff1 = 0x2C
 
-        if BitwiseAnd( pHash1, pHash2 ) == -1 then
-            return 0
+        if addr != 0 then
+            if BitwiseAnd( pHash1, pHash2 ) == -1 then
+                return 0
+            endif
+
+            if pHash1 >= 0 then
+                set pOff1 = 0xC
+            endif
+
+            set pOff1 = ReadRealMemory( addr ) + pOff1
+            set pOff1 = ReadRealMemory( pOff1 )
+
+            if pOff1 == 0 then
+                return 0
+            endif
+
+            set pOff1 = ReadRealMemory( pOff1 + 0x8 * pHash1 + 0x4 )
+
+            if pOff1 == 0 or ReadRealMemory( pOff1 + 0x18 ) != pHash2 then
+                return 0
+            endif
+
+            return pOff1
         endif
 
-        if pHash1 >= 0 then
-            set pOff1 = 0xC
-        endif
-
-        set pOff1 = ReadRealMemory( pGameClass1 ) + pOff1
-        set pOff1 = ReadRealMemory( pOff1 )
-
-        if pOff1 == 0 then
-            return 0
-        endif
-
-        set pOff1 = ReadRealMemory( pOff1 + 0x8 * pHash1 + 0x4 )
-
-        if pOff1 == 0 or ReadRealMemory( pOff1 + 0x18 ) != pHash2 then
-            return 0
-        endif
-
-        return pOff1
+        return 0
     endfunction
 
     function GetCAgentFromHash takes integer pHash1, integer pHash2 returns integer // Jass Variant of sub_6F4786B0 (126a) || pass the read values, not the pointers.
@@ -201,11 +228,12 @@ library APIMemoryGameData
 
     function GetCObjectFromHashGroup takes integer pHashGroup returns integer
         // Alternative to GetCObjectFromHash( ReadRealMemory( pHash + 0x0 ), ReadRealMemory( pHash + 0x4 ) )
+        local integer addr     = GetTempestThread( )
         local integer pOffset1 = pHashGroup
         local integer pOffset2
 
-        if pHashGroup > 0 then
-            set pOffset2 = ReadRealMemory( pGameClass1 )
+        if addr != 0 and pHashGroup != 0 then
+            set pOffset2 = ReadRealMemory( addr )
 
             if pOffset2 > 0 then
                 set pOffset1 = ReadRealMemory( pOffset1 )
@@ -237,14 +265,15 @@ library APIMemoryGameData
 
     function GetAgentTimerCooldown takes integer pTimer returns real
         local integer pData = 0
+        local integer arg   = LoadInteger( MemHackTable, StringHash( "PointerArray" ), 0 )
 
-        if pTimer > 0 then
+        if pTimer != 0 and arg != 0 then
             set pData = ReadRealMemory( pTimer )
 
-            if pData > 0 then
-                call WriteRealMemory( pReservedIntArg1, 0 )
-                call this_call_2( ReadRealMemory( pData + 0x18 ), pTimer, pReservedIntArg1 )
-                return ReadRealFloat( pReservedIntArg1 )
+            if pData != 0 then
+                call WriteRealMemory( arg, 0 )
+                call this_call_2( ReadRealMemory( pData + 0x18 ), pTimer, arg )
+                return ReadRealFloat( arg )
             endif
         endif
 
@@ -253,16 +282,17 @@ library APIMemoryGameData
 
     function GetAgentTimerExtendedCooldown takes integer pTimerExt returns real
         local integer pData = 0
+        local integer arg   = LoadInteger( MemHackTable, StringHash( "PointerArray" ), 0 )
 
-        if pTimerExt > 0 then
+        if pTimerExt != 0 and arg != 0 then
             set pData = ReadRealMemory( pTimerExt )
 
-            if pData > 0 then
-                call WriteRealMemory( pReservedIntArg2, 0 )
-                call WriteRealMemory( pReservedIntArg3, 0 )
-                call this_call_2( ReadRealMemory( pData + 0x10 ), pTimerExt, pReservedIntArg1 )
-                call this_call_2( ReadRealMemory( pData + 0x1C ), pTimerExt, pReservedIntArg2 )
-                return ReadRealFloat( pReservedIntArg1 ) - ReadRealFloat( pReservedIntArg2 )
+            if pData != 0 then
+                call WriteRealMemory( arg + 0x0, 0 )
+                call WriteRealMemory( arg + 0x4, 0 )
+                call this_call_2( ReadRealMemory( pData + 0x10 ), pTimerExt, arg + 0x0 )
+                call this_call_2( ReadRealMemory( pData + 0x1C ), pTimerExt, arg + 0x4 )
+                return ReadRealFloat( arg + 0x0 ) - ReadRealFloat( arg + 0x4 )
             endif
         endif
 
@@ -272,79 +302,79 @@ library APIMemoryGameData
     function Init_APIMemoryGameData takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
-                set pGameState          = pGameDLL + 0xACD44C
-                set pGameClass1         = pGameDLL + 0xACE5E0
-                set pGetUnitAddress     = pGameDLL + 0x3BE7F0
-                set pGetHandleId        = pGameDLL + 0x3A8BA0
-                set pHandleIdToObject   = pGameDLL + 0x428B90
-                set pObjectToHandleId   = pGameDLL + 0x4317C0
-                set pGetHashKey         = pGameDLL + 0x4C9020
-                set pGetDataNode        = pGameDLL + 0x46F230
-                set pGetUIDataNode      = pGameDLL + 0x001EC0
-                set pGetWidgetUIDef     = pGameDLL + 0x32D3C0
-                set pGetAgentUIDef      = pGameDLL + 0x32D420
-                set pToJUnit            = pGameDLL + 0x2DD760
-                set pGetObjectFromHash  = pGameDLL + 0x040770
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ),         pGameDLL + 0xACD44C )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "TempestThread" ),     pGameDLL + 0xACE5E0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "jUnitToCUnit" ),      pGameDLL + 0x3BE7F0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetDataNode" ),       pGameDLL + 0x3A8BA0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "ConvertPointer" ),    pGameDLL + 0x428B90 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GenerateHandle" ),    pGameDLL + 0x4317C0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetHashKey" ),        pGameDLL + 0x4C9020 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileDataNode" ),  pGameDLL + 0x46F230 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileUINode" ),    pGameDLL + 0x001EC0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetWidgetUIDef" ),    pGameDLL + 0x32D3C0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgentUIDef" ),     pGameDLL + 0x32D420 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "CUnitTojUnit" ),      pGameDLL + 0x2DD760 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetObjectFromHash" ), pGameDLL + 0x040770 )
         elseif PatchVersion == "1.26a" then
-                set pGameState          = pGameDLL + 0xAB65F4
-                set pGameClass1         = pGameDLL + 0xAB7788
-                set pGetUnitAddress     = pGameDLL + 0x3BDCB0
-                set pGetHandleId        = pGameDLL + 0x3A8060
-                set pHandleIdToObject   = pGameDLL + 0x428050
-                set pObjectToHandleId   = pGameDLL + 0x430C80
-                set pGetHashKey         = pGameDLL + 0x4C8520
-                set pGetDataNode        = pGameDLL + 0x46E720
-                set pGetUIDataNode      = pGameDLL + 0x001EC0
-                set pGetWidgetUIDef     = pGameDLL + 0x32C880
-                set pGetAgentUIDef      = pGameDLL + 0x32C8E0
-                set pToJUnit            = pGameDLL + 0x2DCC40
-                set pGetObjectFromHash  = pGameDLL + 0x03FA30
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ),         pGameDLL + 0xAB65F4 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "TempestThread" ),     pGameDLL + 0xAB7788 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "jUnitToCUnit" ),      pGameDLL + 0x3BDCB0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetDataNode" ),       pGameDLL + 0x3A8060 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "ConvertPointer" ),    pGameDLL + 0x428050 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GenerateHandle" ),    pGameDLL + 0x430C80 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetHashKey" ),        pGameDLL + 0x4C8520 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileDataNode" ),  pGameDLL + 0x46E720 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileUINode" ),    pGameDLL + 0x001EC0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetWidgetUIDef" ),    pGameDLL + 0x32C880 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgentUIDef" ),     pGameDLL + 0x32C8E0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "CUnitTojUnit" ),      pGameDLL + 0x2DCC40 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetObjectFromHash" ), pGameDLL + 0x03FA30 )
         elseif PatchVersion == "1.27a" then
-                set pGameState          = pGameDLL + 0xBE4238 // Inside ExecuteFunc | under Concurrency::details::ContextBase dword_... = v3
-                set pGameClass1         = pGameDLL + 0xBE40A8 // "DispatchUnitSelectionModify Start for player %d" -> & 0x7FFFFFFFu) >= *(_DWORD *)(dword_6F... + 60
-                set pGetUnitAddress     = pGameDLL + 0x1D1550 // WaygateSetDestination -> result = (signed int *)
-                set pGetHandleId        = pGameDLL + 0x1C3200 // this + 7, 0, 0, 0);
-                set pHandleIdToObject   = pGameDLL + 0x268380 // this[103] + 12 * a2 - 12582908);
-                set pObjectToHandleId   = pGameDLL + 0x2651D0 // (_DWORD *)(v4[112] + 12 * (v5 & v8));
-                set pGetHashKey         = pGameDLL + 0x17A710 // for ( i = -286331154; v1; i += v4 + 32 * i + v2
-                set pGetDataNode        = pGameDLL + 0x0352A0 // first while ( *result != a2 || result[5] != *a3 )
-                set pGetUIDataNode      = pGameDLL + 0x021BD0
-                set pGetWidgetUIDef     = pGameDLL + 0x327020
-                set pGetAgentUIDef      = pGameDLL + 0x322C30
-                set pToJUnit            = pGameDLL + 0x88F250 // GetCreepCamp -> JUMPOUT(&loc_6F...);
-                set pGetObjectFromHash  = pGameDLL + 0x037350
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ),         pGameDLL + 0xBE4238 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "TempestThread" ),     pGameDLL + 0xBE40A8 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "jUnitToCUnit" ),      pGameDLL + 0x1D1550 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetDataNode" ),       pGameDLL + 0x1C3200 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "ConvertPointer" ),    pGameDLL + 0x268380 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GenerateHandle" ),    pGameDLL + 0x2651D0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetHashKey" ),        pGameDLL + 0x17A710 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileDataNode" ),  pGameDLL + 0x0352A0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileUINode" ),    pGameDLL + 0x021BD0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetWidgetUIDef" ),    pGameDLL + 0x327020 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgentUIDef" ),     pGameDLL + 0x322C30 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "CUnitTojUnit" ),      pGameDLL + 0x88F250 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetObjectFromHash" ), pGameDLL + 0x037350 )
         elseif PatchVersion == "1.27b" then
-                set pGameState          = pGameDLL + 0xD687A8
-                set pGameClass1         = pGameDLL + 0xD68610
-                set pGetUnitAddress     = pGameDLL + 0x1EEF90
-                set pGetHandleId        = pGameDLL + 0x1E0D70
-                set pHandleIdToObject   = pGameDLL + 0x285FE0
-                set pObjectToHandleId   = pGameDLL + 0x282E30
-                set pGetHashKey         = pGameDLL + 0x198420
-                set pGetDataNode        = pGameDLL + 0x052480
-                set pGetUIDataNode      = pGameDLL + 0x03ECD0
-                set pGetWidgetUIDef     = pGameDLL + 0x344760
-                set pGetAgentUIDef      = pGameDLL + 0x340380
-                set pToJUnit            = pGameDLL + 0x9BA350
-                set pGetObjectFromHash  = pGameDLL + 0x054530
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ),         pGameDLL + 0xD687A8 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "TempestThread" ),     pGameDLL + 0xD68610 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "jUnitToCUnit" ),      pGameDLL + 0x1EEF90 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetDataNode" ),       pGameDLL + 0x1E0D70 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "ConvertPointer" ),    pGameDLL + 0x285FE0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GenerateHandle" ),    pGameDLL + 0x282E30 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetHashKey" ),        pGameDLL + 0x198420 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileDataNode" ),  pGameDLL + 0x052480 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileUINode" ),    pGameDLL + 0x03ECD0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetWidgetUIDef" ),    pGameDLL + 0x344760 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgentUIDef" ),     pGameDLL + 0x340380 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "CUnitTojUnit" ),      pGameDLL + 0x9BA350 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetObjectFromHash" ), pGameDLL + 0x054530 )
         elseif PatchVersion == "1.28f" then
-                set pGameState          = pGameDLL + 0xD305E0
-                set pGameClass1         = pGameDLL + 0xD30448
-                set pGetUnitAddress     = pGameDLL + 0x2217A0
-                set pGetHandleId        = pGameDLL + 0x2135F0
-                set pHandleIdToObject   = pGameDLL + 0x2B8490
-                set pObjectToHandleId   = pGameDLL + 0x2B52E0
-                set pGetHashKey         = pGameDLL + 0x1CACC0
-                set pGetDataNode        = pGameDLL + 0x07BFE0
-                set pGetUIDataNode      = pGameDLL + 0x069D60
-                set pGetWidgetUIDef     = pGameDLL + 0x378720
-                set pGetAgentUIDef      = pGameDLL + 0x374340
-                set pToJUnit            = pGameDLL + 0x96F2E0
-                set pGetObjectFromHash  = pGameDLL + 0x07E090
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GameState" ),         pGameDLL + 0xD305E0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "TempestThread" ),     pGameDLL + 0xD30448 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "jUnitToCUnit" ),      pGameDLL + 0x2217A0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetDataNode" ),       pGameDLL + 0x2135F0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "ConvertPointer" ),    pGameDLL + 0x2B8490 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GenerateHandle" ),    pGameDLL + 0x2B52E0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetHashKey" ),        pGameDLL + 0x1CACC0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileDataNode" ),  pGameDLL + 0x07BFE0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgileUINode" ),    pGameDLL + 0x069D60 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetWidgetUIDef" ),    pGameDLL + 0x378720 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetAgentUIDef" ),     pGameDLL + 0x374340 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "CUnitTojUnit" ),      pGameDLL + 0x96F2E0 )
+                call SaveInteger( MemHackTable, StringHash( "CGameWar3" ), StringHash( "GetObjectFromHash" ), pGameDLL + 0x07E090 )
             endif
-            
-            set pVector2Arg = Malloc( 0x8 )
-            set pVector3Arg = Malloc( 0xC )
+
+            call SaveInteger( MemHackTable, StringHash( "CustomData" ), StringHash( "Vector2" ), Malloc( 0x8 ) )
+            call SaveInteger( MemHackTable, StringHash( "CustomData" ), StringHash( "Vector3" ), Malloc( 0xC ) )
         endif
     endfunction
 endlibrary

@@ -1,11 +1,7 @@
-//TESH.scrollpos=30
+//TESH.scrollpos=50
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryWC3GameUIButton
-    globals
-        
-    endglobals
-
     function IsCommandButton takes integer pButton returns boolean
         return GetFrameType( pButton ) == 4
     endfunction
@@ -48,7 +44,7 @@ library APIMemoryWC3GameUIButton
         return -1
     endfunction
 
-    function GetButtonCooldown takes integer pCommandButton returns real
+    function GetButtonCooldownOld takes integer pCommandButton returns real
         local integer pAbil     = 0
         local integer pAbilId   = 0
         local integer pOrderId  = 0
@@ -70,7 +66,7 @@ library APIMemoryWC3GameUIButton
                 //call DisplayTextToPlayer( GetLocalPlayer( ), 0, 0, "pButton = " + IntToHex( pButton ) )
                 //call DisplayTextToPlayer( GetLocalPlayer( ), 0, 0, "pButton + 0x6D4 = " + IntToHex( pAbil ) )
 
-                if pAbil > 0 and pAbilId != 'AHer' and pAbilId != 'Amai' and pAbilId != 'Asei' and pAbilId != 'Asel' then //  and goldcost == 0
+                if pAbil != 0 and pAbilId != 'AHer' and pAbilId != 'Amai' and pAbilId != 'Asei' and pAbilId != 'Asel' then //  and goldcost == 0
                     set pAbil = ReadRealMemory( pAbil + 0xDC )
                     //call DisplayTextToPlayer( GetLocalPlayer( ), 0, 0, "pAbil + 0xDC = " + IntToHex( pAbil ) )
 
@@ -94,16 +90,85 @@ library APIMemoryWC3GameUIButton
         return 0.
     endfunction
 
+    function GetButtonCooldown takes integer pCommandButton, boolean addcheck returns real
+        local integer i           = 0
+        local integer pAbil       = 0
+        local integer pAbilId     = 0
+        local integer flag        = 0
+        local integer pOrderId    = 0
+        local integer pButtonData = 0
+        local integer pTimer      = 0
+        local integer pObj        = 0
+        local integer arg         = LoadInteger( MemHackTable, StringHash( "PointerArray" ), 0 )
+
+        if IsCommandButton( pCommandButton ) then
+            set pButtonData = ReadRealMemory( pCommandButton + 0x190 )
+
+            if pButtonData != 0 then
+                set pOrderId = ReadRealMemory( pButtonData + 0x8   )
+                set flag     = ReadRealMemory( pButtonData + 0x10  )
+                set pAbil    = ReadRealMemory( pButtonData + 0x6D4 )
+
+                if pAbil != 0 then
+                     set pAbilId  = ReadRealMemory( pAbil + 0x34 )
+
+                    if pAbilId == 0 or pAbilId == 'AHer' or pAbilId == 'Apit' or pAbilId == 'Asid' or pAbilId == 'Asud' then
+                        return 0.
+                elseif pAbilId == 'Amai' or pAbilId == 'Asei' or pAbilId == 'Asel' then
+                        loop
+                            exitwhen i > 12
+                            set pObj = ReadRealMemory( pAbil + 0xCC + i * 0x4 )
+
+                            if pObj == pOrderId then
+                                // to check for charges -> ReadRealFloat( ReadRealMemory( pAbil + 0x100 + i * 4 ) + 0xC )
+
+                                if ReadRealFloat( pAbil + 0x1C4 + i * 0x1C + 0xC ) != .0 then
+                                    set pTimer = pAbil + 0x1C4 + i * 0x1C
+                                else
+                                    set pTimer = pAbil + 0x318 + i * 0x1C
+                                endif
+
+                                if pTimer != 0 then
+                                    call this_call_2( ReadRealMemory( ReadRealMemory( pTimer ) + 0x18 ), pTimer, arg + 0x4 )
+                                    return ReadRealFloat( arg + 0x4 )
+                                endif
+                                exitwhen true
+                            endif
+                            set i = i + 1
+                        endloop
+                    else
+                        if addcheck and flag == 0x2000401 then
+                            return 0.
+                        endif
+
+                        set flag = ReadRealMemory( pAbil + 0x20 )
+
+                        if BitwiseAnd( flag, 0x200 ) != 0 and BitwiseAnd( flag, 0x400 ) == 0 then
+                            set pTimer = pAbil + 0xD0
+
+                            if pTimer != 0 then
+                                call this_call_2( ReadRealMemory( ReadRealMemory( pTimer ) + 0x18 ), pTimer, arg + 0x4 )
+                                return ReadRealFloat( arg + 0x4 )
+                            endif
+                        endif
+                    endif
+                endif
+            endif
+        endif
+
+        return 0.
+    endfunction
+    
     function IsButtonOnCooldown takes integer pCommandButton returns boolean
-        return GetButtonCooldown( pCommandButton ) > 0
+        return GetButtonCooldown( pCommandButton, true ) > 0.
     endfunction
 
     function AddFrameType takes string name, integer vtype, integer pVtable, integer pVTableObj returns nothing
         local integer hid = StringHash( "FrameTypeTable" )
 
-        call SaveStr(       MemHackTable, hid, pGameDLL + pVtable,     name  )
-        call SaveStr(       MemHackTable, hid, pGameDLL + pVTableObj, name  )
-        call SaveInteger( MemHackTable, hid, pGameDLL + pVtable,     vtype )
+        call SaveStr(     MemHackTable, hid, pGameDLL + pVtable,    name  )
+        call SaveStr(     MemHackTable, hid, pGameDLL + pVTableObj, name  )
+        call SaveInteger( MemHackTable, hid, pGameDLL + pVtable,    vtype )
         call SaveInteger( MemHackTable, hid, pGameDLL + pVTableObj, vtype )
     endfunction
 
