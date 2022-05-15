@@ -42,13 +42,14 @@ library MemoryHackGroupAPI
         local integer pObj  = ConvertHandle( g )
         local integer count = 0
         
-        if pObj > 0 then
+        if pObj != 0 then
             set count = GetAddressGroupUnitCount( pObj )
 
-            if count > 0 then
+            if count != 0 then
                 set pObj  = GetAddressGroupAddressUnitByIndex( pObj, GetRandomInt( 0, count - 1 ) )
 
-                if pObj > 0 then
+                if pObj != 0 then
+                    
                     set pObj = ObjectToHandleId( pObj )
                     
                     if pObj > 0 then
@@ -65,11 +66,11 @@ library MemoryHackGroupAPI
         local integer iterator = LoadInteger( MemHackTable, StringHash( "CGroup" ), StringHash( "Iterator" ) )
         local integer pObj = GetAddressGroupAddressUnitByIndex( ConvertHandle( g ), iterator )
 
-         if pObj > 0 then
+         if pObj != 0 then
             call SaveInteger( MemHackTable, StringHash( "CGroup" ), StringHash( "Iterator" ), iterator + 1 )
             set pObj = ObjectToHandleId( pObj )
 
-            if pObj > 0 then
+            if pObj != 0 then
                 return I2U( pObj )
             endif
         else

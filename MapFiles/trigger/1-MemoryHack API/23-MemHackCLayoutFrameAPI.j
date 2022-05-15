@@ -1,4 +1,4 @@
-//TESH.scrollpos=69
+//TESH.scrollpos=65
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCLayoutFrameAPI
@@ -54,6 +54,7 @@ library MemoryHackCLayoutFrameAPI
             set fid = GetFrameType( pFrame )
 
             if fid != 0 then
+                set pFrame = GetFrameLayout( pFrame )
                 return this_call_2( addr, pFrame, SetRealIntoMemory( width ) )
             endif
         endif
@@ -69,6 +70,7 @@ library MemoryHackCLayoutFrameAPI
             set fid = GetFrameType( pFrame )
 
             if fid != 0 then
+                set pFrame = GetFrameLayout( pFrame )
                 return this_call_2( addr, pFrame, SetRealIntoMemory( height ) )
             endif
         endif
@@ -91,9 +93,9 @@ library MemoryHackCLayoutFrameAPI
     endfunction
 
     function SetCLayoutFrameSize takes integer pFrame, real width, real height returns integer
-        if GetFrameLayout( pFrame ) != 0 then
+        if pFrame != 0 and GetFrameLayout( pFrame ) != 0 then
             call SetCLayoutFrameWidth( pFrame, width )
-            call SetCLayoutFrameWidth( pFrame, height )
+            call SetCLayoutFrameHeight( pFrame, height )
             return 1
         endif
 

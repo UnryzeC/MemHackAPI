@@ -2,12 +2,16 @@
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCSimpleFrameAPI
+    function AllocCSimpleFrame takes nothing returns integer
+        return StormAllocateMemory( 0x124, "MemHackCSimpleFrame", 4, 0 )
+    endfunction
+
     function CreateCSimpleFrame takes integer pParent returns integer
         local integer addr    = LoadInteger( MemHackTable, StringHash( "CSimpleFrame" ), StringHash( "Create" ) )
         local integer baseobj = 0
 
         if addr != 0 then
-            set baseobj = StormAllocateMemory( 0x124, "MemHackCSimpleFrame", 16, 0 )
+            set baseobj = AllocCSimpleFrame( )
 
             if baseobj != 0 then
                 return this_call_2( addr, baseobj, pParent )

@@ -47,7 +47,7 @@ library APIMemoryGameData
         local integer pData = GetGameStateInstance( )
 
         if addr != 0 and pData != 0 then
-            return this_call_1( addr, pData )
+            return this_call_1( addr, ReadRealMemory( pData ) )
         endif
 
         return 0

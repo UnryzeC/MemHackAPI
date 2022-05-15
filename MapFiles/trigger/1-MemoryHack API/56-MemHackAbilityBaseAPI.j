@@ -1,4 +1,4 @@
-//TESH.scrollpos=38
+//TESH.scrollpos=444
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackAbilityBaseAPI
@@ -237,8 +237,8 @@ library MemoryHackAbilityBaseAPI
     //  CAbilityDef
 	//	uint32_t	 unk_0;			// 0x0 | void**
 	//	uint32_t	 unk_4;			// 0x4
-	//	float		 hDuration;		// 0x8 | heroDuration
-	//	float		 nDuration;		// 0xC | normalDuration
+	//	float		 nDuration;		// 0x8 | heroDuration
+	//	float		 hDuration;		// 0xC | normalDuration
 	//	int32_t		 manaCost;		// 0x10
 	//	float		 cooldown;		// 0x14
 	//	float		 aoe;			// 0x18
@@ -277,7 +277,7 @@ library MemoryHackAbilityBaseAPI
         return 0
     endfunction
 
-    function GetAbilityBaseHeroDurationById takes integer aid, integer level returns real
+    function GetAbilityBaseNormalDurationById takes integer aid, integer level returns real
         local integer pAbil = GetAbilityBaseDefData( aid, level )
 
         if pAbil != 0 then
@@ -287,7 +287,7 @@ library MemoryHackAbilityBaseAPI
         return .0
     endfunction
 
-    function SetAbilityBaseHeroDurationById takes integer aid, integer level, real duration returns nothing
+    function SetAbilityBaseNormalDurationById takes integer aid, integer level, real duration returns nothing
         local integer pAbil = GetAbilityBaseDefData( aid, level )
 
         if pAbil != 0 then
@@ -295,7 +295,7 @@ library MemoryHackAbilityBaseAPI
         endif
     endfunction
 
-    function GetAbilityBaseNormalDurationById takes integer aid, integer level returns real
+    function GetAbilityBaseHeroDurationById takes integer aid, integer level returns real
         local integer pAbil = GetAbilityBaseDefData( aid, level )
 
         if pAbil != 0 then
@@ -305,7 +305,7 @@ library MemoryHackAbilityBaseAPI
         return .0
     endfunction
 
-    function SetAbilityBaseNormalDurationById takes integer aid, integer level, real duration returns nothing
+    function SetAbilityBaseHeroDurationById takes integer aid, integer level, real duration returns nothing
         local integer pAbil = GetAbilityBaseDefData( aid, level )
 
         if pAbil != 0 then
@@ -507,7 +507,7 @@ library MemoryHackAbilityBaseAPI
         local integer pAbil = GetAbilityBaseDefData( aid, level )
 
         if pAbil != 0 then
-            call WriteRealMemory( pAbil + 0x34, uid )
+            call WriteRealMemory( pAbil + 0x44, uid )
         endif
     endfunction
 

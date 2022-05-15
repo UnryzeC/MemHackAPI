@@ -2,12 +2,16 @@
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCSimpleTextureAPI
+    function AllocCSimpleTexture takes nothing returns integer
+        return StormAllocateMemory( 0xE8, "MemHackCSimpleTexture", 4, 0 )
+    endfunction
+
     function CreateCSimpleTexture takes integer pParent returns integer
         local integer addr    = LoadInteger( MemHackTable, StringHash( "CSimpleTexture" ), StringHash( "Create" ) )
         local integer baseobj = 0
 
         if addr != 0 then
-            set baseobj = StormAllocateMemory( 0xE8, "", 0, 0 )
+            set baseobj = AllocCSimpleTexture( )
 
             if baseobj > 0 then
                 return this_call_4( addr, baseobj, pParent, 2, 1 )

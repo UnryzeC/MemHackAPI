@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=78
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCASpriteUberAPI

@@ -2966,7 +2966,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer pData= GetGameStateInstance()
 
         if addr != 0 and pData != 0 then
-            return this_call_1(addr , pData)
+            return this_call_1(addr , ReadRealMemory(pData))
         endif
 
         return 0
@@ -5615,8 +5615,8 @@ native IgnoredUnits takes integer unitid returns integer                        
     //  CAbilityDef
 	//	uint32_t	 unk_0;			// 0x0 | void**
 	//	uint32_t	 unk_4;			// 0x4
-	//	float		 hDuration;		// 0x8 | heroDuration
-	//	float		 nDuration;		// 0xC | normalDuration
+	//	float		 nDuration;		// 0x8 | heroDuration
+	//	float		 hDuration;		// 0xC | normalDuration
 	//	int32_t		 manaCost;		// 0x10
 	//	float		 cooldown;		// 0x14
 	//	float		 aoe;			// 0x18
@@ -5655,7 +5655,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         return 0
     endfunction
 
-    function GetAbilityBaseHeroDurationById takes integer aid,integer level returns real
+    function GetAbilityBaseNormalDurationById takes integer aid,integer level returns real
         local integer pAbil= GetAbilityBaseDefData(aid , level)
 
         if pAbil != 0 then
@@ -5665,7 +5665,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         return .0
     endfunction
 
-    function SetAbilityBaseHeroDurationById takes integer aid,integer level,real duration returns nothing
+    function SetAbilityBaseNormalDurationById takes integer aid,integer level,real duration returns nothing
         local integer pAbil= GetAbilityBaseDefData(aid , level)
 
         if pAbil != 0 then
@@ -5673,7 +5673,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         endif
     endfunction
 
-    function GetAbilityBaseNormalDurationById takes integer aid,integer level returns real
+    function GetAbilityBaseHeroDurationById takes integer aid,integer level returns real
         local integer pAbil= GetAbilityBaseDefData(aid , level)
 
         if pAbil != 0 then
@@ -5683,7 +5683,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         return .0
     endfunction
 
-    function SetAbilityBaseNormalDurationById takes integer aid,integer level,real duration returns nothing
+    function SetAbilityBaseHeroDurationById takes integer aid,integer level,real duration returns nothing
         local integer pAbil= GetAbilityBaseDefData(aid , level)
 
         if pAbil != 0 then
@@ -5885,7 +5885,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer pAbil= GetAbilityBaseDefData(aid , level)
 
         if pAbil != 0 then
-            call WriteRealMemory(pAbil + 0x34 , uid)
+            call WriteRealMemory(pAbil + 0x44 , uid)
         endif
     endfunction
 
@@ -8719,6 +8719,7 @@ native IgnoredUnits takes integer unitid returns integer                        
             set fid=GetFrameType(pFrame)
 
             if fid != 0 then
+                set pFrame=GetFrameLayout(pFrame)
                 return this_call_2(addr , pFrame , SetRealIntoMemory(width))
             endif
         endif
@@ -8734,6 +8735,7 @@ native IgnoredUnits takes integer unitid returns integer                        
             set fid=GetFrameType(pFrame)
 
             if fid != 0 then
+                set pFrame=GetFrameLayout(pFrame)
                 return this_call_2(addr , pFrame , SetRealIntoMemory(height))
             endif
         endif
@@ -8756,9 +8758,9 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetCLayoutFrameSize takes integer pFrame,real width,real height returns integer
-        if GetFrameLayout(pFrame) != 0 then
+        if pFrame != 0 and GetFrameLayout(pFrame) != 0 then
             call SetCLayoutFrameWidth(pFrame , width)
-            call SetCLayoutFrameWidth(pFrame , height)
+            call SetCLayoutFrameHeight(pFrame , height)
             return 1
         endif
 
@@ -9662,12 +9664,16 @@ native IgnoredUnits takes integer unitid returns integer                        
 
 //library MemoryHackCSimpleFontAPI ends
 //library MemoryHackCSimpleFrameAPI:
+    function AllocCSimpleFrame takes nothing returns integer
+        return StormAllocateMemory(0x124 , "MemHackCSimpleFrame" , 4 , 0)
+    endfunction
+
     function CreateCSimpleFrame takes integer pParent returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Create"))
         local integer baseobj= 0
 
         if addr != 0 then
-            set baseobj=StormAllocateMemory(0x124 , "MemHackCSimpleFrame" , 16 , 0)
+            set baseobj=AllocCSimpleFrame()
 
             if baseobj != 0 then
                 return this_call_2(addr , baseobj , pParent)
@@ -9838,6 +9844,32 @@ native IgnoredUnits takes integer unitid returns integer                        
 
 //library MemoryHackCSimpleMessageFrameAPI ends
 //library MemoryHackCSimpleRegionAPI:
+    // CSimpleRegion is baseline frame type for CSimpleTexture, CSimpleFontString. So you can use this API on them as well.
+
+    function ShowCSimpleRegion takes integer pSimpleRegion returns nothing
+        local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Show"))
+
+        if addr != 0 and pSimpleRegion != 0 then
+            call this_call_1(addr , pSimpleRegion)
+        endif
+    endfunction
+
+    function HideCSimpleRegion takes integer pSimpleRegion returns nothing
+        local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Hide"))
+
+        if addr != 0 and pSimpleRegion != 0 then
+            call this_call_1(addr , pSimpleRegion)
+        endif
+    endfunction
+    
+    function SetCSimpleRegionVisibility takes integer pSimpleRegion,boolean flag returns nothing
+        if flag then
+            call ShowCSimpleRegion(pSimpleRegion)
+        else
+            call HideCSimpleRegion(pSimpleRegion)
+        endif
+    endfunction
+
     function SetCSimpleRegionVertexColour takes integer pFrame,integer colour returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"))
         local integer arg= LoadInteger(MemHackTable, StringHash("PointerArray"), 0)
@@ -9868,14 +9900,24 @@ native IgnoredUnits takes integer unitid returns integer                        
     function Init_MemHackCSimpleRegionAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Show"), pGameDLL + 0x60EF60)
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Hide"), pGameDLL + 0x60EF80)
                 call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"), pGameDLL + 0x60EEE0)
         elseif PatchVersion == "1.26a" then
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Show"), pGameDLL + 0x60E7C0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Hide"), pGameDLL + 0x60E7E0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"), pGameDLL + 0x60E740)
         elseif PatchVersion == "1.27a" then
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Show"), pGameDLL + 0x0BFA70)
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Hide"), pGameDLL + 0x0BF8D0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"), pGameDLL + 0x0BFA30)
         elseif PatchVersion == "1.27b" then
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Show"), pGameDLL + 0x1137D0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Hide"), pGameDLL + 0x113630)
                 call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"), pGameDLL + 0x113790)
         elseif PatchVersion == "1.28f" then
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Show"), pGameDLL + 0x141E80)
+                call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("Hide"), pGameDLL + 0x141CE0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"), pGameDLL + 0x141E40)
             endif
         endif
@@ -9956,12 +9998,16 @@ native IgnoredUnits takes integer unitid returns integer                        
 
 //library MemoryHackCSimpleStatusBarAPI ends
 //library MemoryHackCSimpleTextureAPI:
+    function AllocCSimpleTexture takes nothing returns integer
+        return StormAllocateMemory(0xE8 , "MemHackCSimpleTexture" , 4 , 0)
+    endfunction
+
     function CreateCSimpleTexture takes integer pParent returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleTexture"), StringHash("Create"))
         local integer baseobj= 0
 
         if addr != 0 then
-            set baseobj=StormAllocateMemory(0xE8 , "" , 0 , 0)
+            set baseobj=AllocCSimpleTexture()
 
             if baseobj > 0 then
                 return this_call_4(addr , baseobj , pParent , 2 , 1)
@@ -11963,13 +12009,14 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer pObj= ConvertHandle(g)
         local integer count= 0
         
-        if pObj > 0 then
+        if pObj != 0 then
             set count=GetAddressGroupUnitCount(pObj)
 
-            if count > 0 then
+            if count != 0 then
                 set pObj=GetAddressGroupAddressUnitByIndex(pObj , GetRandomInt(0, count - 1))
 
-                if pObj > 0 then
+                if pObj != 0 then
+                    
                     set pObj=ObjectToHandleId(pObj)
                     
                     if pObj > 0 then
@@ -11986,11 +12033,11 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer iterator= LoadInteger(MemHackTable, StringHash("CGroup"), StringHash("Iterator"))
         local integer pObj= GetAddressGroupAddressUnitByIndex(ConvertHandle(g) , iterator)
 
-         if pObj > 0 then
+         if pObj != 0 then
             call SaveInteger(MemHackTable, StringHash("CGroup"), StringHash("Iterator"), iterator + 1)
             set pObj=ObjectToHandleId(pObj)
 
-            if pObj > 0 then
+            if pObj != 0 then
                 return I2U(pObj)
             endif
         else
@@ -15603,7 +15650,7 @@ function TestBenchmarking takes nothing returns nothing
     loop
         exitwhen i == 10000
         // Some stuff here
-        
+
         set i=i + 1
     endloop
     set time=GetLocalTime(0) - time
@@ -15614,7 +15661,7 @@ function TestBenchmarking takes nothing returns nothing
     loop
         exitwhen i == 10000
         // Some other stuff here
-        
+
         set i=i + 1
     endloop
     set time=GetLocalTime(0) - time
@@ -15642,7 +15689,10 @@ function TestTimerSpeed takes nothing returns nothing
 endfunction
 
 function Init_TestCode takes nothing returns nothing
+    local trigger t= null
     local integer i= 1
+    local integer pFrame= 0
+
     call EnableOPLimit(false) // This removes operation limit, hence allowing us to use benchmark method above.
     // Since it has over 20000 complex operations, we need to remove limit to complete benchmark without exiting the thread until it fully completes.
     //call LoadTOCFile( "UI\\Data\\List.toc" ) // not needed for code testing, you can however load your own TOCs.
@@ -15652,6 +15702,10 @@ function Init_TestCode takes nothing returns nothing
     call SetUnitLifeRegen(uTemp , 9999.)
     call SetUnitMaxMana(uTemp , 99999.)
     call SetUnitManaRegen(uTemp , 9999.)
+    call SetUnitAttackSpeed(uTemp , 6.)
+    call SetUnitBaseDamage(uTemp , 10000)
+
+    
     call UnitAddAbility(uTemp, 'AOsh')
     call SetUnitAbilityLevel(uTemp, 'AOsh', 2)
 
@@ -15662,16 +15716,13 @@ function Init_TestCode takes nothing returns nothing
     call UnitAddAbility(uTemp, 'AOws')
     call UnitAddAbility(uTemp, 'AUcs')
     call UnitAddAbility(uTemp, 'AHbz')
-    
-    call UnitAddItemById(uTemp, 'shas')
-    call UnitAddItemById(uTemp, 'shas')
-    call UnitAddItemById(uTemp, 'shas')
-    call UnitAddItemById(uTemp, 'shas')
-    call UnitAddItemById(uTemp, 'shas')
-    call UnitAddItemById(uTemp, 'shas')
 
     call TimerStart(GetExpiredTimer(), .1, false, function TestBenchmarking)
-    call TimerStart(CreateTimer(), .0, true, function TestTimerSpeed)
+    return
+
+    
+    
+    //call TimerStart( CreateTimer( ), .0, true, function TestTimerSpeed )
 endfunction
 
 //===========================================================================
@@ -15716,7 +15767,7 @@ endfunction
 // 
 //   Warcraft III map script
 //   Generated by the Warcraft III World Editor
-//   Date: Wed May 11 20:42:43 2022
+//   Date: Sun May 15 17:04:38 2022
 //   Map Author: Unryze & quq_CCCP
 // 
 //===========================================================================
@@ -15745,13 +15796,7 @@ function CreateNeutralPassiveBuildings takes nothing returns nothing
     local trigger t
     local real life
 
-    set u=CreateUnit(p, 'nmer', 384.0, - 256.0, 270.000)
-    call SetUnitColor(u, ConvertPlayerColor(0))
-    set u=CreateUnit(p, 'nmer', 960.0, - 256.0, 270.000)
-    call SetUnitColor(u, ConvertPlayerColor(0))
-    set u=CreateUnit(p, 'nmer', 0.0, 192.0, 270.000)
-    call SetUnitColor(u, ConvertPlayerColor(0))
-    set u=CreateUnit(p, 'nmer', 1088.0, 256.0, 270.000)
+    set u=CreateUnit(p, 'nmer', 256.0, 0.0, 270.000)
     call SetUnitColor(u, ConvertPlayerColor(0))
 endfunction
 
@@ -15903,7 +15948,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryGameUIButton
 //===========================================================================
-//TESH.scrollpos=50
+//TESH.scrollpos=401
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15933,7 +15978,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCFrameAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=99
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15943,7 +15988,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCLayerAPI
 //===========================================================================
-//TESH.scrollpos=102
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15953,7 +15998,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCLayoutFrameAPI
 //===========================================================================
-//TESH.scrollpos=69
+//TESH.scrollpos=65
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15963,7 +16008,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCBackDropFrameAPI
 //===========================================================================
-//TESH.scrollpos=6
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16173,7 +16218,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSpriteUberAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=78
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16216,7 +16261,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackAbilityBaseAPI
 //===========================================================================
-//TESH.scrollpos=38
+//TESH.scrollpos=444
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16324,7 +16369,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackUnitNormalAPI
 //===========================================================================
-//TESH.scrollpos=1446
+//TESH.scrollpos=993
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16566,7 +16611,7 @@ endfunction
 //
 // This code can be removed, as it is only is needed for tests it yields no benefits or usage elsewise.
 //===========================================================================
-//TESH.scrollpos=59
+//TESH.scrollpos=45
 //TESH.alwaysfold=0
 
 //===========================================================================

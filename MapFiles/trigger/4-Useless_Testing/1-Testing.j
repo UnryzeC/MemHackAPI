@@ -1,4 +1,4 @@
-//TESH.scrollpos=59
+//TESH.scrollpos=45
 //TESH.alwaysfold=0
 //! nocjass
 library SystemDebug
@@ -23,7 +23,7 @@ function TestBenchmarking takes nothing returns nothing
     loop
         exitwhen i == 10000
         // Some stuff here
-        
+
         set i = i + 1
     endloop
     set time  = GetLocalTime( 0 ) - time
@@ -34,7 +34,7 @@ function TestBenchmarking takes nothing returns nothing
     loop
         exitwhen i == 10000
         // Some other stuff here
-        
+
         set i = i + 1
     endloop
     set time  = GetLocalTime( 0 ) - time
@@ -62,7 +62,10 @@ function TestTimerSpeed takes nothing returns nothing
 endfunction
 
 function Init_TestCode takes nothing returns nothing
+    local trigger t = null
     local integer i = 1
+    local integer pFrame = 0
+
     call EnableOPLimit( false ) // This removes operation limit, hence allowing us to use benchmark method above.
     // Since it has over 20000 complex operations, we need to remove limit to complete benchmark without exiting the thread until it fully completes.
     //call LoadTOCFile( "UI\\Data\\List.toc" ) // not needed for code testing, you can however load your own TOCs.
@@ -72,6 +75,10 @@ function Init_TestCode takes nothing returns nothing
     call SetUnitLifeRegen( uTemp, 9999. )
     call SetUnitMaxMana( uTemp, 99999. )
     call SetUnitManaRegen( uTemp, 9999. )
+    call SetUnitAttackSpeed( uTemp, 6. )
+    call SetUnitBaseDamage( uTemp, 10000 )
+
+    
     call UnitAddAbility( uTemp, 'AOsh' )
     call SetUnitAbilityLevel( uTemp, 'AOsh', 2 )
 
@@ -82,16 +89,13 @@ function Init_TestCode takes nothing returns nothing
     call UnitAddAbility( uTemp, 'AOws' )
     call UnitAddAbility( uTemp, 'AUcs' )
     call UnitAddAbility( uTemp, 'AHbz' )
-    
-    call UnitAddItemById( uTemp, 'shas' )
-    call UnitAddItemById( uTemp, 'shas' )
-    call UnitAddItemById( uTemp, 'shas' )
-    call UnitAddItemById( uTemp, 'shas' )
-    call UnitAddItemById( uTemp, 'shas' )
-    call UnitAddItemById( uTemp, 'shas' )
 
     call TimerStart( GetExpiredTimer( ), .1, false, function TestBenchmarking )
-    call TimerStart( CreateTimer( ), .0, true, function TestTimerSpeed )
+    return
+
+    
+    
+    //call TimerStart( CreateTimer( ), .0, true, function TestTimerSpeed )
 endfunction
 
 //===========================================================================
