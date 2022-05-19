@@ -73,6 +73,9 @@ constant boolean LIBRARY_APIMemoryBitwise=true
 //globals from APIMemoryForString:
 constant boolean LIBRARY_APIMemoryForString=true
 //endglobals from APIMemoryForString
+//globals from APIMemoryFrameData:
+constant boolean LIBRARY_APIMemoryFrameData=true
+//endglobals from APIMemoryFrameData
 //globals from APIMemoryGameData:
 constant boolean LIBRARY_APIMemoryGameData=true
 hashtable htObjectDataPointers= InitHashtable()
@@ -258,9 +261,13 @@ constant boolean LIBRARY_MemoryHackzDrawCooldowns=true
 //endglobals from MemoryHackzDrawCooldowns
 //globals from SystemDebug:
 constant boolean LIBRARY_SystemDebug=true
+group gTemp= null
 unit uTemp= null
 effect eTemp= null
 integer iTemp= 0
+        //hashtable htTemp = InitHashtable( )
+        
+player pTemp= Player(0)
 
 boolean testout= true
 //endglobals from SystemDebug
@@ -340,6 +347,7 @@ trigger gg_trg_MemHackBerserkHook= null
 trigger gg_trg_MemHackCustomAbilityChargesHook= null
 trigger gg_trg_Testing= null
 trigger gg_trg_HandleAPI= null
+trigger gg_trg_APIMemoryFrameData= null
 
 
 //JASSHelper struct globals:
@@ -2923,6 +2931,429 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
 //library APIMemoryForString ends
+//library APIMemoryFrameData:
+    function GetFrameType takes integer pFrame returns integer
+        if pFrame != 0 then
+            return LoadInteger(MemHackTable, StringHash("FrameTypeTable"), ReadRealMemory(pFrame))
+        endif
+
+        return 0
+    endfunction
+
+    function GetFrameTypeName takes integer pFrame returns string
+        if pFrame != 0 then
+            return LoadStr(MemHackTable, StringHash("FrameTypeTable"), ReadRealMemory(pFrame))
+        endif
+
+        return ""
+    endfunction
+
+    function GetFrameTypeNameByIndex takes integer index returns string
+        if index > 0 then
+            return LoadStr(MemHackTable, StringHash("FrameTypeTable"), index)
+        endif
+
+        return ""
+    endfunction
+
+    function GetFrameLayoutAddress takes integer pFrame returns integer
+        local integer fid= GetFrameType(pFrame)
+
+        if fid != 0 then
+            return LoadInteger(MemHackTable, StringHash("FrameTypeTable"), fid + 0x1000)
+        endif
+
+        return 0
+    endfunction
+
+    function GetFrameHasLayout takes integer pFrame returns boolean
+        return GetFrameLayoutAddress(pFrame) != 0
+    endfunction
+
+    function GetFrameLayoutByType takes integer pFrame,integer fid returns integer
+        local boolean haslayout= LoadInteger(MemHackTable, StringHash("FrameTypeTable"), fid + 0x1000) != 0
+
+        if fid != 0 then
+            if not haslayout then
+                return pFrame
+            else
+                return pFrame + 0xB4 // if 1.29+ 0xBC
+            endif
+        endif
+
+        return 0
+    endfunction
+
+    function GetFrameLayout takes integer pFrame returns integer
+        return GetFrameLayoutByType(pFrame , GetFrameType(pFrame))
+    endfunction
+
+    function IsFrameLayoutByType takes integer pFrame,integer fid returns boolean
+        return GetFrameLayoutByType(pFrame , fid) == pFrame
+    endfunction
+
+    function IsFrameLayout takes integer pFrame returns boolean
+        return GetFrameLayout(pFrame) == pFrame
+    endfunction
+
+    function AddFrameType takes string name,integer vtype,integer pVtable,integer pVTableObj returns nothing
+        local integer hid= StringHash("FrameTypeTable")
+
+        call SaveStr(MemHackTable, hid, vtype, name)
+        call SaveInteger(MemHackTable, hid, vtype, pGameDLL + pVtable)
+        call SaveInteger(MemHackTable, hid, vtype + 0x1000, pGameDLL + pVTableObj)
+
+        call SaveStr(MemHackTable, hid, pGameDLL + pVtable, name)
+        call SaveInteger(MemHackTable, hid, pGameDLL + pVtable, vtype)
+
+        if pVTableObj != 0 then
+            call SaveInteger(MemHackTable, hid, pGameDLL + pVTableObj, vtype)
+            call SaveStr(MemHackTable, hid, pGameDLL + pVTableObj, name)
+        endif
+    endfunction
+    
+    function Init_APIMemoryFrameData takes nothing returns nothing
+        if PatchVersion != "" then
+            if PatchVersion == "1.24e" then
+                if true then // Generation of Frame Type Table
+                    call AddFrameType("CBackdropFrame" , 1 , 0x98109C , 0x981074)
+                    call AddFrameType("CButtonFrame" , 2 , 0x9813A4 , 0x98137C)
+                    call AddFrameType("CChatMode" , 3 , 0x94CA1C , 0x000000)
+                    call AddFrameType("CCommandButton" , 4 , 0x94EA04 , 0x000000)
+                    call AddFrameType("CCursorFrame" , 5 , 0x9822E4 , 0x9822B8)
+                    call AddFrameType("CEditBox" , 6 , 0x980994 , 0x980968)
+                    call AddFrameType("CFrame" , 7 , 0x97FB5C , 0x97FB34)
+                    call AddFrameType("CFloatingFrame" , 8 , 0x98175C , 0x981730)
+                    call AddFrameType("CGameUI" , 9 , 0x94847C , 0x948454)
+                    call AddFrameType("CHeroBarButton" , 10 , 0x951A34 , 0x951A14)
+                    call AddFrameType("CHighlightFrame" , 11 , 0x98161C , 0x9815F4)
+                    call AddFrameType("CLayoutFrame" , 12 , 0x97FAF0 , 0x000000)
+                    call AddFrameType("CMessageFrame" , 13 , 0x98150C , 0x9814E4)
+                    call AddFrameType("CMinimap" , 14 , 0x952184 , 0x95215C)
+                    call AddFrameType("CModelFrame" , 15 , 0x981254 , 0x98122C)
+                    call AddFrameType("CPortraitButton" , 16 , 0x95233C , 0x952314)
+                    call AddFrameType("CScreenFrame" , 17 , 0x97FD24 , 0x97FCFC)
+                    call AddFrameType("CSimpleButton" , 18 , 0x97F934 , 0x000000)
+                    call AddFrameType("CSimpleFontString" , 19 , 0x9800AC , 0x000000)
+                    call AddFrameType("CSimpleFrame" , 20 , 0x97FC5C , 0x000000)
+                    call AddFrameType("CSimpleGlueFrame" , 21 , 0x980AAC , 0x000000)
+                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
+                    call AddFrameType("CSimpleMessageFrame" , 23 , 0x97FA2C , 0x000000)
+                    call AddFrameType("CSlider" , 24 , 0x980F1C , 0x980EF4)
+                    call AddFrameType("CSpriteFrame" , 25 , 0x98022C , 0x980200)
+                    call AddFrameType("CStatBar" , 26 , 0x95075C , 0x000000)
+                    call AddFrameType("CTextArea" , 27 , 0x980C7C , 0x980C54)
+                    call AddFrameType("CTextButtonFrame" , 28 , 0x980DBC , 0x980D90)
+                    call AddFrameType("CTextFrame" , 29 , 0x98065C , 0x980630)
+                    call AddFrameType("CUberToolTipWar3" , 30 , 0x9517E4 , 0x000000)
+                    call AddFrameType("CWorldFrameWar3" , 31 , 0x9536D4 , 0x9536A8)
+                    call AddFrameType("CGlueButtonWar3" , 32 , 0x96EA84 , 0x96EA58)
+                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0x96C164 , 0x96C138)
+                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0x96E944 , 0x96E918)
+                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0x96BFDC , 0x96BFB4)
+                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0x96EBC4 , 0x96EB98)
+                    call AddFrameType("CSlashChatBox" , 37 , 0x96FC44 , 0x96FC1C)
+                    call AddFrameType("CTimerTextFrame" , 38 , 0x96C6BC , 0x96C690)
+                    call AddFrameType("CSimpleStatusBar" , 39 , 0x980134 , 0x000000)
+                    call AddFrameType("CStatusBar" , 40 , 0x981F0C , 0x981EE4)
+                    call AddFrameType("CUpperButtonBar" , 41 , 0x94E544 , 0x94E524)
+                    call AddFrameType("CResourceBar" , 42 , 0x94F38C , 0x000000)
+                    call AddFrameType("CSimpleConsole" , 43 , 0x94DE8C , 0x000000)
+                    call AddFrameType("CPeonBar" , 44 , 0x951D64 , 0x951D48)
+                    call AddFrameType("CHeroBar" , 45 , 0x951ACC , 0x951AB0)
+                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0x951FBC , 0x951F90)
+                    call AddFrameType("CInfoBar" , 47 , 0x9527C4 , 0x000000)
+                    call AddFrameType("CTimeCover" , 48 , 0x94E1B4 , 0x94E188)
+                    call AddFrameType("CProgressIndicator" , 49 , 0x94A4AC , 0x000000)
+                    call AddFrameType("CHeroLevelBar" , 50 , 0x951B7C , 0x000000)
+                    call AddFrameType("CBuildTimeIndicator" , 51 , 0x94F7E4 , 0x000000)
+                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0x94EFB4 , 0x000000)
+                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0x94D624 , 0x000000)
+                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0x94D4D4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconHero" , 55 , 0x94D3E4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconGold" , 56 , 0x94D36C , 0x000000)
+                    call AddFrameType("CInfoPanelIconFood" , 57 , 0x94D2F4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconRank" , 58 , 0x94D27C , 0x000000)
+                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0x94D204 , 0x000000)
+                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0x94D18C , 0x000000)
+                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0x94F0EC , 0x000000)
+                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0x94FFFC , 0x000000)
+                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0x94F06C , 0x000000)
+                    call AddFrameType("CSimpleTexture" , 64 , 0x9800E8 , 0x000000)
+                endif
+            elseif PatchVersion == "1.26a" then
+                if true then // Generation of Frame Type Table
+                    call AddFrameType("CBackdropFrame" , 1 , 0x96F3F4 , 0x96F3CC)
+                    call AddFrameType("CButtonFrame" , 2 , 0x96F6FC , 0x96F6D4)
+                    call AddFrameType("CChatMode" , 3 , 0x93A8BC , 0x000000)
+                    call AddFrameType("CCommandButton" , 4 , 0x93EBC4 , 0x000000)
+                    call AddFrameType("CCursorFrame" , 5 , 0x97063C , 0x970610)
+                    call AddFrameType("CEditBox" , 6 , 0x96ECEC , 0x96ECC0)
+                    call AddFrameType("CFrame" , 7 , 0x96DEB4 , 0x96DE8C)
+                    call AddFrameType("CFloatingFrame" , 8 , 0x96FAB4 , 0x96FA88)
+                    call AddFrameType("CGameUI" , 9 , 0x93631C , 0x9362F4)
+                    call AddFrameType("CHeroBarButton" , 10 , 0x93F8DC , 0x93F8BC)
+                    call AddFrameType("CHighlightFrame" , 11 , 0x96F974 , 0x96F94C)
+                    call AddFrameType("CLayoutFrame" , 12 , 0x96DE48 , 0x000000)
+                    call AddFrameType("CMessageFrame" , 13 , 0x96F864 , 0x96F83C)
+                    call AddFrameType("CMinimap" , 14 , 0x94002C , 0x940004)
+                    call AddFrameType("CModelFrame" , 15 , 0x96F5AC , 0x96F584)
+                    call AddFrameType("CPortraitButton" , 16 , 0x9401E4 , 0x9401BC)
+                    call AddFrameType("CScreenFrame" , 17 , 0x96E07C , 0x96E054)
+                    call AddFrameType("CSimpleButton" , 18 , 0x96DC8C , 0x000000)
+                    call AddFrameType("CSimpleFontString" , 19 , 0x96E404 , 0x000000)
+                    call AddFrameType("CSimpleFrame" , 20 , 0x96DFB4 , 0x000000)
+                    call AddFrameType("CSimpleGlueFrame" , 21 , 0x96EE04 , 0x000000)
+                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
+                    call AddFrameType("CSimpleMessageFrame" , 23 , 0x96DD84 , 0x000000)
+                    call AddFrameType("CSlider" , 24 , 0x96F274 , 0x96F24C)
+                    call AddFrameType("CSpriteFrame" , 25 , 0x96E584 , 0x96E558)
+                    call AddFrameType("CStatBar" , 26 , 0x93E604 , 0x000000)
+                    call AddFrameType("CTextArea" , 27 , 0x96EFD4 , 0x96EFAC)
+                    call AddFrameType("CTextButtonFrame" , 28 , 0x96F114 , 0x96F0E8)
+                    call AddFrameType("CTextFrame" , 29 , 0x96E9B4 , 0x96E988)
+                    call AddFrameType("CUberToolTipWar3" , 30 , 0x93F68C , 0x000000)
+                    call AddFrameType("CWorldFrameWar3" , 31 , 0x94157C , 0x941550)
+                    call AddFrameType("CGlueButtonWar3" , 32 , 0x95C92C , 0x95C900)
+                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0x95A00C , 0x959FE0)
+                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0x95C7EC , 0x95C7C0)
+                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0x959E84 , 0x959E5C)
+                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0x95CA6C , 0x95CA40)
+                    call AddFrameType("CSlashChatBox" , 37 , 0x95DAEC , 0x95DAC4)
+                    call AddFrameType("CTimerTextFrame" , 38 , 0x95A564 , 0x95A538)
+                    call AddFrameType("CSimpleStatusBar" , 39 , 0x96E48C , 0x000000)
+                    call AddFrameType("CStatusBar" , 40 , 0x970264 , 0x97023C)
+                    call AddFrameType("CUpperButtonBar" , 41 , 0x93C3E4 , 0x93C3C4)
+                    call AddFrameType("CResourceBar" , 42 , 0x93D22C , 0x000000)
+                    call AddFrameType("CSimpleConsole" , 43 , 0x93BD2C , 0x000000)
+                    call AddFrameType("CPeonBar" , 44 , 0x93FC0C , 0x93FBF0)
+                    call AddFrameType("CHeroBar" , 45 , 0x93F974 , 0x93F958)
+                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0x93FE64 , 0x93FE38)
+                    call AddFrameType("CInfoBar" , 47 , 0x94066C , 0x000000)
+                    call AddFrameType("CTimeCover" , 48 , 0x93C054 , 0x93C028)
+                    call AddFrameType("CProgressIndicator" , 49 , 0x93834C , 0x000000)
+                    call AddFrameType("CHeroLevelBar" , 50 , 0x93FA24 , 0x000000)
+                    call AddFrameType("CBuildTimeIndicator" , 51 , 0x93D684 , 0x000000)
+                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0x93CE54 , 0x000000)
+                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0x93B4C4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0x93B374 , 0x000000)
+                    call AddFrameType("CInfoPanelIconHero" , 55 , 0x93B284 , 0x000000)
+                    call AddFrameType("CInfoPanelIconGold" , 56 , 0x93B20C , 0x000000)
+                    call AddFrameType("CInfoPanelIconFood" , 57 , 0x93B194 , 0x000000)
+                    call AddFrameType("CInfoPanelIconRank" , 58 , 0x93B11C , 0x000000)
+                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0x93B0A4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0x93B02C , 0x000000)
+                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0x93CF8C , 0x000000)
+                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0x93DE9C , 0x000000)
+                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0x93CF0C , 0x000000)
+                    call AddFrameType("CSimpleTexture" , 64 , 0x96E440 , 0x000000)
+                endif
+        elseif PatchVersion == "1.27a" then
+                if true then // Generation of Frame Type Table
+                    call AddFrameType("CBackdropFrame" , 1 , 0x95AC3C , 0x95AD38)
+                    call AddFrameType("CButtonFrame" , 2 , 0x95B318 , 0x95B42C)
+                    call AddFrameType("CChatMode" , 3 , 0x98FB4C , 0x000000)
+                    call AddFrameType("CCommandButton" , 4 , 0x98F6A8 , 0x000000)
+                    call AddFrameType("CCursorFrame" , 5 , 0x95D0BC , 0x95D1AC)
+                    call AddFrameType("CEditBox" , 6 , 0x95BCBC , 0x95BDD4)
+                    call AddFrameType("CFrame" , 7 , 0x95A760 , 0x95A848)
+                    call AddFrameType("CFloatingFrame" , 8 , 0x95D1D4 , 0x95D2BC)
+                    call AddFrameType("CGameUI" , 9 , 0x98C3EC , 0x98C4D4)
+                    call AddFrameType("CHeroBarButton" , 10 , 0x990E44 , 0x990EBC)
+                    call AddFrameType("CHighlightFrame" , 11 , 0x95ADD4 , 0x95AEBC)
+                    call AddFrameType("CLayoutFrame" , 12 , 0x95CB54 , 0x000000)
+                    call AddFrameType("CMessageFrame" , 13 , 0x95AF28 , 0x95B010)
+                    call AddFrameType("CMinimap" , 14 , 0x99244C , 0x992538)
+                    call AddFrameType("CModelFrame" , 15 , 0x95AAE4 , 0x95ABE0)
+                    call AddFrameType("CPortraitButton" , 16 , 0x9922FC , 0x992424)
+                    call AddFrameType("CScreenFrame" , 17 , 0x95D2E4 , 0x95D3CC)
+                    call AddFrameType("CSimpleButton" , 18 , 0x95C9A4 , 0x000000)
+                    call AddFrameType("CSimpleFontString" , 19 , 0x95CE00 , 0x000000)
+                    call AddFrameType("CSimpleFrame" , 20 , 0x95C8A4 , 0x000000)
+                    call AddFrameType("CSimpleGlueFrame" , 21 , 0x95CE64 , 0x000000)
+                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
+                    call AddFrameType("CSimpleMessageFrame" , 23 , 0x95CF38 , 0x000000)
+                    call AddFrameType("CSlider" , 24 , 0x95B468 , 0x95B584)
+                    call AddFrameType("CSpriteFrame" , 25 , 0x95A8A4 , 0x95A994)
+                    call AddFrameType("CStatBar" , 26 , 0x98F52C , 0x000000)
+                    call AddFrameType("CTextArea" , 27 , 0x95C610 , 0x95C724)
+                    call AddFrameType("CTextButtonFrame" , 28 , 0x95BF60 , 0x95C074)
+                    call AddFrameType("CTextFrame" , 29 , 0x95B050 , 0x95B164)
+                    call AddFrameType("CUberToolTipWar3" , 30 , 0x98F364 , 0x000000)
+                    call AddFrameType("CWorldFrameWar3" , 31 , 0x98DCD0 , 0x98DDB8)
+                    call AddFrameType("CGlueButtonWar3" , 32 , 0x975D40 , 0x975E54)
+                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0x975E7C , 0x975F90)
+                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0x977A44 , 0x977B58)
+                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0x975FB8 , 0x9760CC)
+                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0x9760F4 , 0x97620C)
+                    call AddFrameType("CSlashChatBox" , 37 , 0x977278 , 0x977390)
+                    call AddFrameType("CTimerTextFrame" , 38 , 0x979FBC , 0x97A0D0)
+                    call AddFrameType("CSimpleStatusBar" , 39 , 0x95CABC , 0x000000)
+                    call AddFrameType("CStatusBar" , 40 , 0x95B1B0 , 0x95B2B8)
+                    call AddFrameType("CUpperButtonBar" , 41 , 0x98EF64 , 0x98EFD4)
+                    call AddFrameType("CResourceBar" , 42 , 0x993E54 , 0x000000)
+                    call AddFrameType("CSimpleConsole" , 43 , 0x992D68 , 0x000000)
+                    call AddFrameType("CPeonBar" , 44 , 0x992C60 , 0x992CD4)
+                    call AddFrameType("CHeroBar" , 45 , 0x990ED8 , 0x990F4C)
+                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0x994620 , 0x994710)
+                    call AddFrameType("CInfoBar" , 47 , 0x99197C , 0x000000)
+                    call AddFrameType("CTimeCover" , 48 , 0x994510 , 0x9945F8)
+                    call AddFrameType("CProgressIndicator" , 49 , 0x98B0E4 , 0x000000)
+                    call AddFrameType("CHeroLevelBar" , 50 , 0x991010 , 0x000000)
+                    call AddFrameType("CBuildTimeIndicator" , 51 , 0x98F438 , 0x000000)
+                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0x991778 , 0x000000)
+                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0x9916F8 , 0x000000)
+                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0x991584 , 0x000000)
+                    call AddFrameType("CInfoPanelIconHero" , 55 , 0x991510 , 0x000000)
+                    call AddFrameType("CInfoPanelIconGold" , 56 , 0x99149C , 0x000000)
+                    call AddFrameType("CInfoPanelIconFood" , 57 , 0x991428 , 0x000000)
+                    call AddFrameType("CInfoPanelIconRank" , 58 , 0x9913B4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0x991340 , 0x000000)
+                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0x9912CC , 0x000000)
+                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0x991678 , 0x000000)
+                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0x99116C , 0x000000)
+                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0x9915F8 , 0x000000)
+                    call AddFrameType("CSimpleTexture" , 64 , 0x95CDC4 , 0x000000)
+                endif
+        elseif PatchVersion == "1.27b" then
+                if true then // Generation of Frame Type Table
+                    call AddFrameType("CBackdropFrame" , 1 , 0xA8B5AC , 0xA8B6A8)
+                    call AddFrameType("CButtonFrame" , 2 , 0xA8BC88 , 0xA8BD9C)
+                    call AddFrameType("CChatMode" , 3 , 0xABD488 , 0x000000)
+                    call AddFrameType("CCommandButton" , 4 , 0xABCFF4 , 0x000000)
+                    call AddFrameType("CCursorFrame" , 5 , 0xA8DA14 , 0xA8DB04)
+                    call AddFrameType("CEditBox" , 6 , 0xA8C62C , 0xA8C744)
+                    call AddFrameType("CFrame" , 7 , 0xA8B0D0 , 0xA8B1B8)
+                    call AddFrameType("CFloatingFrame" , 8 , 0xA8DB2C , 0xA8DC14)
+                    call AddFrameType("CGameUI" , 9 , 0xAB9D90 , 0xAB9E78)
+                    call AddFrameType("CHeroBarButton" , 10 , 0xABE768 , 0xABE7E0)
+                    call AddFrameType("CHighlightFrame" , 11 , 0xA8B744 , 0xA8B82C)
+                    call AddFrameType("CLayoutFrame" , 12 , 0xA8D4B4 , 0x000000)
+                    call AddFrameType("CMessageFrame" , 13 , 0xA8B898 , 0xA8B980)
+                    call AddFrameType("CMinimap" , 14 , 0xAB0EE4 , 0xAB0FD4)
+                    call AddFrameType("CModelFrame" , 15 , 0xA8B454 , 0xA8B550)
+                    call AddFrameType("CPortraitButton" , 16 , 0xABFBC0 , 0xABFCE8)
+                    call AddFrameType("CScreenFrame" , 17 , 0xA8DC3C , 0xA8DD24)
+                    call AddFrameType("CSimpleButton" , 18 , 0xA8D304 , 0x000000)
+                    call AddFrameType("CSimpleFontString" , 19 , 0xA8D760 , 0x000000)
+                    call AddFrameType("CSimpleFrame" , 20 , 0xA8D204 , 0x000000)
+                    call AddFrameType("CSimpleGlueFrame" , 21 , 0xA8D7C4 , 0x000000)
+                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
+                    call AddFrameType("CSimpleMessageFrame" , 23 , 0xA8D88C , 0x000000)
+                    call AddFrameType("CSlider" , 24 , 0xA8BDD8 , 0xA8BEF4)
+                    call AddFrameType("CSpriteFrame" , 25 , 0xA8B214 , 0xA8B304)
+                    call AddFrameType("CStatBar" , 26 , 0xABCE78 , 0x000000)
+                    call AddFrameType("CTextArea" , 27 , 0xA8CF7C , 0xA8D090)
+                    call AddFrameType("CTextButtonFrame" , 28 , 0xA8C8CC , 0xA8C9E0)
+                    call AddFrameType("CTextFrame" , 29 , 0xA8B9C0 , 0xA8BAD4)
+                    call AddFrameType("CUberToolTipWar3" , 30 , 0xABCCC8 , 0x000000)
+                    call AddFrameType("CWorldFrameWar3" , 31 , 0xABB66C , 0xABB754)
+                    call AddFrameType("CGlueButtonWar3" , 32 , 0xAA3D00 , 0xAA3E14)
+                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0xAA3E3C , 0xAA3F50)
+                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0xAA59C0 , 0xAA5AD4)
+                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0xAA3F78 , 0xAA408C)
+                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0xAA40B4 , 0xAA41CC)
+                    call AddFrameType("CSlashChatBox" , 37 , 0xAA5238 , 0xAA5350)
+                    call AddFrameType("CTimerTextFrame" , 38 , 0xAA7E70 , 0xAA7F84)
+                    call AddFrameType("CSimpleStatusBar" , 39 , 0xA8D41C , 0x000000)
+                    call AddFrameType("CStatusBar" , 40 , 0xA8BB20 , 0xA8BC28)
+                    call AddFrameType("CUpperButtonBar" , 41 , 0xABC8D8 , 0xABC948)
+                    call AddFrameType("CResourceBar" , 42 , 0xAC16A8 , 0x000000)
+                    call AddFrameType("CSimpleConsole" , 43 , 0xAC05FC , 0x000000)
+                    call AddFrameType("CPeonBar" , 44 , 0xAC0504 , 0xAC0578)
+                    call AddFrameType("CHeroBar" , 45 , 0xABE7FC , 0xABE870)
+                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0xAC1E58 , 0xAC1F48)
+                    call AddFrameType("CInfoBar" , 47 , 0xABF288 , 0x000000)
+                    call AddFrameType("CTimeCover" , 48 , 0xAC1D48 , 0xAC1E30)
+                    call AddFrameType("CProgressIndicator" , 49 , 0xAB8BE8 , 0x000000)
+                    call AddFrameType("CHeroLevelBar" , 50 , 0xABE924 , 0x000000)
+                    call AddFrameType("CBuildTimeIndicator" , 51 , 0xABCD94 , 0x000000)
+                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0xABF084 , 0x000000)
+                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0xABF004 , 0x000000)
+                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0xABEE90 , 0x000000)
+                    call AddFrameType("CInfoPanelIconHero" , 55 , 0xABEE1C , 0x000000)
+                    call AddFrameType("CInfoPanelIconGold" , 56 , 0xABEDA8 , 0x000000)
+                    call AddFrameType("CInfoPanelIconFood" , 57 , 0xABED34 , 0x000000)
+                    call AddFrameType("CInfoPanelIconRank" , 58 , 0xABECC0 , 0x000000)
+                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0xABEC4C , 0x000000)
+                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0xABEBD8 , 0x000000)
+                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0xABEF84 , 0x000000)
+                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0xABEA78 , 0x000000)
+                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0xABEF04 , 0x000000)
+                    call AddFrameType("CSimpleTexture" , 64 , 0xA8D724 , 0x000000)
+                endif
+        elseif PatchVersion == "1.28f" then
+                if true then // Generation of Frame Type Table
+                    call AddFrameType("CBackdropFrame" , 1 , 0xA7AFBC , 0xA7B0B8)
+                    call AddFrameType("CButtonFrame" , 2 , 0xA7B698 , 0xA7B7AC)
+                    call AddFrameType("CChatMode" , 3 , 0xAADE54 , 0x000000)
+                    call AddFrameType("CCommandButton" , 4 , 0xAAD9B8 , 0x000000)
+                    call AddFrameType("CCursorFrame" , 5 , 0xA7D42C , 0xA7D51C)
+                    call AddFrameType("CEditBox" , 6 , 0xA7C03C , 0xA7C154)
+                    call AddFrameType("CFrame" , 7 , 0xA7AAE0 , 0xA7ABC8)
+                    call AddFrameType("CFloatingFrame" , 8 , 0xA7D544 , 0xA7D62C)
+                    call AddFrameType("CGameUI" , 9 , 0xAAA730 , 0xAAA818)
+                    call AddFrameType("CHeroBarButton" , 10 , 0xAAF130 , 0xAAF1A8)
+                    call AddFrameType("CHighlightFrame" , 11 , 0xA7B154 , 0xA7B23C)
+                    call AddFrameType("CLayoutFrame" , 12 , 0xA7CEC4 , 0x000000)
+                    call AddFrameType("CMessageFrame" , 13 , 0xA7B2A8 , 0xA7B390)
+                    call AddFrameType("CMinimap" , 14 , 0xAB0704 , 0xAB07F0)
+                    call AddFrameType("CModelFrame" , 15 , 0xA7AE64 , 0xA7AF60)
+                    call AddFrameType("CPortraitButton" , 16 , 0xAB05B4 , 0xAB06DC)
+                    call AddFrameType("CScreenFrame" , 17 , 0xA7D654 , 0xA7D73C)
+                    call AddFrameType("CSimpleButton" , 18 , 0xA7CD14 , 0x000000)
+                    call AddFrameType("CSimpleFontString" , 19 , 0xA7D178 , 0x000000)
+                    call AddFrameType("CSimpleFrame" , 20 , 0xA7CC14 , 0x000000)
+                    call AddFrameType("CSimpleGlueFrame" , 21 , 0xA7D1DC , 0x000000)
+                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
+                    call AddFrameType("CSimpleMessageFrame" , 23 , 0xA7D2A8 , 0x000000)
+                    call AddFrameType("CSlider" , 24 , 0xA7B7E8 , 0xA7B904)
+                    call AddFrameType("CSpriteFrame" , 25 , 0xA7AC24 , 0xA7AD14)
+                    call AddFrameType("CStatBar" , 26 , 0xAAD83C , 0x000000)
+                    call AddFrameType("CTextArea" , 27 , 0xA7C98C , 0xA7CAA0)
+                    call AddFrameType("CTextButtonFrame" , 28 , 0xA7C2DC , 0xA7C3F0)
+                    call AddFrameType("CTextFrame" , 29 , 0xA7B3D0 , 0xA7B4E4)
+                    call AddFrameType("CUberToolTipWar3" , 30 , 0xAAD684 , 0x000000)
+                    call AddFrameType("CWorldFrameWar3" , 31 , 0xAAC008 , 0xAAC0F0)
+                    call AddFrameType("CGlueButtonWar3" , 32 , 0xA93B68 , 0xA93C7C)
+                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0xA93CA4 , 0xA93DB8)
+                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0xA95844 , 0xA95958)
+                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0xA93DE0 , 0xA93EF4)
+                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0xA93F1C , 0xA94034)
+                    call AddFrameType("CSlashChatBox" , 37 , 0xA950A0 , 0xA951B8)
+                    call AddFrameType("CTimerTextFrame" , 38 , 0xA97D38 , 0xA97E4C)
+                    call AddFrameType("CSimpleStatusBar" , 39 , 0xA7CE2C , 0x000000)
+                    call AddFrameType("CStatusBar" , 40 , 0xA7B530 , 0xA7B638)
+                    call AddFrameType("CUpperButtonBar" , 41 , 0xAAD28C , 0xAAD2FC)
+                    call AddFrameType("CResourceBar" , 42 , 0xAB20D4 , 0x000000)
+                    call AddFrameType("CSimpleConsole" , 43 , 0xAB1008 , 0x000000)
+                    call AddFrameType("CPeonBar" , 44 , 0xAB0F08 , 0xAB0F7C)
+                    call AddFrameType("CHeroBar" , 45 , 0xAAF1C4 , 0xAAF238)
+                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0xAB2890 , 0xAB2980)
+                    call AddFrameType("CInfoBar" , 47 , 0xAAFC58 , 0x000000)
+                    call AddFrameType("CTimeCover" , 48 , 0xAB2780 , 0xAB2868)
+                    call AddFrameType("CProgressIndicator" , 49 , 0xAA950C , 0x000000)
+                    call AddFrameType("CHeroLevelBar" , 50 , 0xAAF2F0 , 0x000000)
+                    call AddFrameType("CBuildTimeIndicator" , 51 , 0xAAD750 , 0x000000)
+                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0xAAFA54 , 0x000000)
+                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0xAAF9D4 , 0x000000)
+                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0xAAF860 , 0x000000)
+                    call AddFrameType("CInfoPanelIconHero" , 55 , 0xAAF7EC , 0x000000)
+                    call AddFrameType("CInfoPanelIconGold" , 56 , 0xAAF778 , 0x000000)
+                    call AddFrameType("CInfoPanelIconFood" , 57 , 0xAAF704 , 0x000000)
+                    call AddFrameType("CInfoPanelIconRank" , 58 , 0xAAF690 , 0x000000)
+                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0xAAF61C , 0x000000)
+                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0xAAF5A8 , 0x000000)
+                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0xAAF954 , 0x000000)
+                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0xAAF448 , 0x000000)
+                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0xAAF8D4 , 0x000000)
+                    call AddFrameType("CSimpleTexture" , 64 , 0xA7D13C , 0x000000)
+                endif
+            endif
+        endif
+    endfunction
+
+//library APIMemoryFrameData ends
 //library APIMemoryGameData:
 
     function SaveCode takes hashtable ht,integer parentKey,integer childKey,code c returns nothing
@@ -4338,14 +4769,6 @@ native IgnoredUnits takes integer unitid returns integer                        
         endif
     endfunction
 
-    function GetFrameType takes integer pFrame returns integer
-        if pFrame > 0 then
-            return LoadInteger(MemHackTable, StringHash("FrameTypeTable"), ReadRealMemory(pFrame))
-        endif
-
-        return 0
-    endfunction
-    
     function LoadImageTexture takes string texturepath,integer flag1,integer flag2 returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CGameUI"), StringHash("LoadImage"))
         local integer arg= LoadInteger(MemHackTable, StringHash("PointerArray"), 0)
@@ -4433,7 +4856,7 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library APIMemoryWC3GameUI ends
 //library APIMemoryWC3GameUIButton:
     function IsCommandButton takes integer pButton returns boolean
-        return GetFrameType(pButton) == 4
+        return GetFrameTypeName(pButton) == "CCommandButton"
     endfunction
 
     function GetButtonData takes integer pCommandButton returns integer
@@ -4593,354 +5016,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         return GetButtonCooldown(pCommandButton , true) > 0.
     endfunction
 
-    function AddFrameType takes string name,integer vtype,integer pVtable,integer pVTableObj returns nothing
-        local integer hid= StringHash("FrameTypeTable")
-
-        call SaveStr(MemHackTable, hid, pGameDLL + pVtable, name)
-        call SaveStr(MemHackTable, hid, pGameDLL + pVTableObj, name)
-        call SaveInteger(MemHackTable, hid, pGameDLL + pVtable, vtype)
-        call SaveInteger(MemHackTable, hid, pGameDLL + pVTableObj, vtype)
-    endfunction
-
     function Init_APIMemoryGameUIButton takes nothing returns nothing
-        if PatchVersion != "" then
-            if PatchVersion == "1.24e" then
-                if true then // Generation of Frame Type Table
-                    call AddFrameType("CBackdropFrame" , 1 , 0x98109C , 0x981074)
-                    call AddFrameType("CButtonFrame" , 2 , 0x9813A4 , 0x98137C)
-                    call AddFrameType("CChatMode" , 3 , 0x94CA1C , 0x000000)
-                    call AddFrameType("CCommandButton" , 4 , 0x94EA04 , 0x000000)
-                    call AddFrameType("CCursorFrame" , 5 , 0x9822E4 , 0x9822B8)
-                    call AddFrameType("CEditBox" , 6 , 0x980994 , 0x980968)
-                    call AddFrameType("CFrame" , 7 , 0x97FB5C , 0x97FB34)
-                    call AddFrameType("CFloatingFrame" , 8 , 0x98175C , 0x981730)
-                    call AddFrameType("CGameUI" , 9 , 0x94847C , 0x948454)
-                    call AddFrameType("CHeroBarButton" , 10 , 0x951A34 , 0x951A14)
-                    call AddFrameType("CHighlightFrame" , 11 , 0x98161C , 0x9815F4)
-                    call AddFrameType("CLayoutFrame" , 12 , 0x97FAF0 , 0x000000)
-                    call AddFrameType("CMessageFrame" , 13 , 0x98150C , 0x9814E4)
-                    call AddFrameType("CMinimap" , 14 , 0x952184 , 0x95215C)
-                    call AddFrameType("CModelFrame" , 15 , 0x981254 , 0x98122C)
-                    call AddFrameType("CPortraitButton" , 16 , 0x95233C , 0x952314)
-                    call AddFrameType("CScreenFrame" , 17 , 0x97FD24 , 0x97FCFC)
-                    call AddFrameType("CSimpleButton" , 18 , 0x97F934 , 0x000000)
-                    call AddFrameType("CSimpleFontString" , 19 , 0x9800AC , 0x000000)
-                    call AddFrameType("CSimpleFrame" , 20 , 0x97FC5C , 0x000000)
-                    call AddFrameType("CSimpleGlueFrame" , 21 , 0x980AAC , 0x000000)
-                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
-                    call AddFrameType("CSimpleMessageFrame" , 23 , 0x97FA2C , 0x000000)
-                    call AddFrameType("CSlider" , 24 , 0x980F1C , 0x980EF4)
-                    call AddFrameType("CSpriteFrame" , 25 , 0x98022C , 0x980200)
-                    call AddFrameType("CStatBar" , 26 , 0x95075C , 0x000000)
-                    call AddFrameType("CTextArea" , 27 , 0x980C7C , 0x980C54)
-                    call AddFrameType("CTextButtonFrame" , 28 , 0x980DBC , 0x980D90)
-                    call AddFrameType("CTextFrame" , 29 , 0x98065C , 0x980630)
-                    call AddFrameType("CUberToolTipWar3" , 30 , 0x9517E4 , 0x000000)
-                    call AddFrameType("CWorldFrameWar3" , 31 , 0x9536D4 , 0x9536A8)
-                    call AddFrameType("CGlueButtonWar3" , 32 , 0x96EA84 , 0x96EA58)
-                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0x96C164 , 0x96C138)
-                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0x96E944 , 0x96E918)
-                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0x96BFDC , 0x96BFB4)
-                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0x96EBC4 , 0x96EB98)
-                    call AddFrameType("CSlashChatBox" , 37 , 0x96FC44 , 0x96FC1C)
-                    call AddFrameType("CTimerTextFrame" , 38 , 0x96C6BC , 0x96C690)
-                    call AddFrameType("CSimpleStatusBar" , 39 , 0x980134 , 0x000000)
-                    call AddFrameType("CStatusBar" , 40 , 0x981F0C , 0x981EE4)
-                    call AddFrameType("CUpperButtonBar" , 41 , 0x94E544 , 0x94E524)
-                    call AddFrameType("CResourceBar" , 42 , 0x94F38C , 0x000000)
-                    call AddFrameType("CSimpleConsole" , 43 , 0x94DE8C , 0x000000)
-                    call AddFrameType("CPeonBar" , 44 , 0x951D64 , 0x951D48)
-                    call AddFrameType("CHeroBar" , 45 , 0x951ACC , 0x951AB0)
-                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0x951FBC , 0x951F90)
-                    call AddFrameType("CInfoBar" , 47 , 0x9527C4 , 0x000000)
-                    call AddFrameType("CTimeCover" , 48 , 0x94E1B4 , 0x94E188)
-                    call AddFrameType("CProgressIndicator" , 49 , 0x94A4AC , 0x000000)
-                    call AddFrameType("CHeroLevelBar" , 50 , 0x951B7C , 0x000000)
-                    call AddFrameType("CBuildTimeIndicator" , 51 , 0x94F7E4 , 0x000000)
-                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0x94EFB4 , 0x000000)
-                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0x94D624 , 0x000000)
-                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0x94D4D4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconHero" , 55 , 0x94D3E4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconGold" , 56 , 0x94D36C , 0x000000)
-                    call AddFrameType("CInfoPanelIconFood" , 57 , 0x94D2F4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconRank" , 58 , 0x94D27C , 0x000000)
-                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0x94D204 , 0x000000)
-                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0x94D18C , 0x000000)
-                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0x94F0EC , 0x000000)
-                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0x94FFFC , 0x000000)
-                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0x94F06C , 0x000000)
-                    call AddFrameType("CSimpleTexture" , 64 , 0x9800E8 , 0x000000)
-                endif
-            elseif PatchVersion == "1.26a" then
-                if true then // Generation of Frame Type Table
-                    call AddFrameType("CBackdropFrame" , 1 , 0x96F3F4 , 0x96F3CC)
-                    call AddFrameType("CButtonFrame" , 2 , 0x96F6FC , 0x96F6D4)
-                    call AddFrameType("CChatMode" , 3 , 0x93A8BC , 0x000000)
-                    call AddFrameType("CCommandButton" , 4 , 0x93EBC4 , 0x000000)
-                    call AddFrameType("CCursorFrame" , 5 , 0x97063C , 0x970610)
-                    call AddFrameType("CEditBox" , 6 , 0x96ECEC , 0x96ECC0)
-                    call AddFrameType("CFrame" , 7 , 0x96DEB4 , 0x96DE8C)
-                    call AddFrameType("CFloatingFrame" , 8 , 0x96FAB4 , 0x96FA88)
-                    call AddFrameType("CGameUI" , 9 , 0x93631C , 0x9362F4)
-                    call AddFrameType("CHeroBarButton" , 10 , 0x93F8DC , 0x93F8BC)
-                    call AddFrameType("CHighlightFrame" , 11 , 0x96F974 , 0x96F94C)
-                    call AddFrameType("CLayoutFrame" , 12 , 0x96DE48 , 0x000000)
-                    call AddFrameType("CMessageFrame" , 13 , 0x96F864 , 0x96F83C)
-                    call AddFrameType("CMinimap" , 14 , 0x94002C , 0x940004)
-                    call AddFrameType("CModelFrame" , 15 , 0x96F5AC , 0x96F584)
-                    call AddFrameType("CPortraitButton" , 16 , 0x9401E4 , 0x9401BC)
-                    call AddFrameType("CScreenFrame" , 17 , 0x96E07C , 0x96E054)
-                    call AddFrameType("CSimpleButton" , 18 , 0x96DC8C , 0x000000)
-                    call AddFrameType("CSimpleFontString" , 19 , 0x96E404 , 0x000000)
-                    call AddFrameType("CSimpleFrame" , 20 , 0x96DFB4 , 0x000000)
-                    call AddFrameType("CSimpleGlueFrame" , 21 , 0x96EE04 , 0x000000)
-                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
-                    call AddFrameType("CSimpleMessageFrame" , 23 , 0x96DD84 , 0x000000)
-                    call AddFrameType("CSlider" , 24 , 0x96F274 , 0x96F24C)
-                    call AddFrameType("CSpriteFrame" , 25 , 0x96E584 , 0x96E558)
-                    call AddFrameType("CStatBar" , 26 , 0x93E604 , 0x000000)
-                    call AddFrameType("CTextArea" , 27 , 0x96EFD4 , 0x96EFAC)
-                    call AddFrameType("CTextButtonFrame" , 28 , 0x96F114 , 0x96F0E8)
-                    call AddFrameType("CTextFrame" , 29 , 0x96E9B4 , 0x96E988)
-                    call AddFrameType("CUberToolTipWar3" , 30 , 0x93F68C , 0x000000)
-                    call AddFrameType("CWorldFrameWar3" , 31 , 0x94157C , 0x941550)
-                    call AddFrameType("CGlueButtonWar3" , 32 , 0x95C92C , 0x95C900)
-                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0x95A00C , 0x959FE0)
-                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0x95C7EC , 0x95C7C0)
-                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0x959E84 , 0x959E5C)
-                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0x95CA6C , 0x95CA40)
-                    call AddFrameType("CSlashChatBox" , 37 , 0x95DAEC , 0x95DAC4)
-                    call AddFrameType("CTimerTextFrame" , 38 , 0x95A564 , 0x95A538)
-                    call AddFrameType("CSimpleStatusBar" , 39 , 0x96E48C , 0x000000)
-                    call AddFrameType("CStatusBar" , 40 , 0x970264 , 0x97023C)
-                    call AddFrameType("CUpperButtonBar" , 41 , 0x93C3E4 , 0x93C3C4)
-                    call AddFrameType("CResourceBar" , 42 , 0x93D22C , 0x000000)
-                    call AddFrameType("CSimpleConsole" , 43 , 0x93BD2C , 0x000000)
-                    call AddFrameType("CPeonBar" , 44 , 0x93FC0C , 0x93FBF0)
-                    call AddFrameType("CHeroBar" , 45 , 0x93F974 , 0x93F958)
-                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0x93FE64 , 0x93FE38)
-                    call AddFrameType("CInfoBar" , 47 , 0x94066C , 0x000000)
-                    call AddFrameType("CTimeCover" , 48 , 0x93C054 , 0x93C028)
-                    call AddFrameType("CProgressIndicator" , 49 , 0x93834C , 0x000000)
-                    call AddFrameType("CHeroLevelBar" , 50 , 0x93FA24 , 0x000000)
-                    call AddFrameType("CBuildTimeIndicator" , 51 , 0x93D684 , 0x000000)
-                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0x93CE54 , 0x000000)
-                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0x93B4C4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0x93B374 , 0x000000)
-                    call AddFrameType("CInfoPanelIconHero" , 55 , 0x93B284 , 0x000000)
-                    call AddFrameType("CInfoPanelIconGold" , 56 , 0x93B20C , 0x000000)
-                    call AddFrameType("CInfoPanelIconFood" , 57 , 0x93B194 , 0x000000)
-                    call AddFrameType("CInfoPanelIconRank" , 58 , 0x93B11C , 0x000000)
-                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0x93B0A4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0x93B02C , 0x000000)
-                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0x93CF8C , 0x000000)
-                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0x93DE9C , 0x000000)
-                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0x93CF0C , 0x000000)
-                    call AddFrameType("CSimpleTexture" , 64 , 0x96E440 , 0x000000)
-                endif
-        elseif PatchVersion == "1.27a" then
-                if true then // Generation of Frame Type Table
-                    call AddFrameType("CBackdropFrame" , 1 , 0x95AC3C , 0x95AD38)
-                    call AddFrameType("CButtonFrame" , 2 , 0x95B318 , 0x95B42C)
-                    call AddFrameType("CChatMode" , 3 , 0x98FB4C , 0x000000)
-                    call AddFrameType("CCommandButton" , 4 , 0x98F6A8 , 0x000000)
-                    call AddFrameType("CCursorFrame" , 5 , 0x95D0BC , 0x95D1AC)
-                    call AddFrameType("CEditBox" , 6 , 0x95BCBC , 0x95BDD4)
-                    call AddFrameType("CFrame" , 7 , 0x95A760 , 0x95A848)
-                    call AddFrameType("CFloatingFrame" , 8 , 0x95D1D4 , 0x95D2BC)
-                    call AddFrameType("CGameUI" , 9 , 0x98C3EC , 0x98C4D4)
-                    call AddFrameType("CHeroBarButton" , 10 , 0x990E44 , 0x990EBC)
-                    call AddFrameType("CHighlightFrame" , 11 , 0x95ADD4 , 0x95AEBC)
-                    call AddFrameType("CLayoutFrame" , 12 , 0x95CB54 , 0x000000)
-                    call AddFrameType("CMessageFrame" , 13 , 0x95AF28 , 0x95B010)
-                    call AddFrameType("CMinimap" , 14 , 0x99244C , 0x992538)
-                    call AddFrameType("CModelFrame" , 15 , 0x95AAE4 , 0x95ABE0)
-                    call AddFrameType("CPortraitButton" , 16 , 0x9922FC , 0x992424)
-                    call AddFrameType("CScreenFrame" , 17 , 0x95D2E4 , 0x95D3CC)
-                    call AddFrameType("CSimpleButton" , 18 , 0x95C9A4 , 0x000000)
-                    call AddFrameType("CSimpleFontString" , 19 , 0x95CE00 , 0x000000)
-                    call AddFrameType("CSimpleFrame" , 20 , 0x95C8A4 , 0x000000)
-                    call AddFrameType("CSimpleGlueFrame" , 21 , 0x95CE64 , 0x000000)
-                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
-                    call AddFrameType("CSimpleMessageFrame" , 23 , 0x95CF38 , 0x000000)
-                    call AddFrameType("CSlider" , 24 , 0x95B468 , 0x95B584)
-                    call AddFrameType("CSpriteFrame" , 25 , 0x95A8A4 , 0x95A994)
-                    call AddFrameType("CStatBar" , 26 , 0x98F52C , 0x000000)
-                    call AddFrameType("CTextArea" , 27 , 0x95C610 , 0x95C724)
-                    call AddFrameType("CTextButtonFrame" , 28 , 0x95BF60 , 0x95C074)
-                    call AddFrameType("CTextFrame" , 29 , 0x95B050 , 0x95B164)
-                    call AddFrameType("CUberToolTipWar3" , 30 , 0x98F364 , 0x000000)
-                    call AddFrameType("CWorldFrameWar3" , 31 , 0x98DCD0 , 0x98DDB8)
-                    call AddFrameType("CGlueButtonWar3" , 32 , 0x975D40 , 0x975E54)
-                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0x975E7C , 0x975F90)
-                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0x977A44 , 0x977B58)
-                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0x975FB8 , 0x9760CC)
-                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0x9760F4 , 0x97620C)
-                    call AddFrameType("CSlashChatBox" , 37 , 0x977278 , 0x977390)
-                    call AddFrameType("CTimerTextFrame" , 38 , 0x979FBC , 0x97A0D0)
-                    call AddFrameType("CSimpleStatusBar" , 39 , 0x95CABC , 0x000000)
-                    call AddFrameType("CStatusBar" , 40 , 0x95B1B0 , 0x95B2B8)
-                    call AddFrameType("CUpperButtonBar" , 41 , 0x98EF64 , 0x98EFD4)
-                    call AddFrameType("CResourceBar" , 42 , 0x993E54 , 0x000000)
-                    call AddFrameType("CSimpleConsole" , 43 , 0x992D68 , 0x000000)
-                    call AddFrameType("CPeonBar" , 44 , 0x992C60 , 0x992CD4)
-                    call AddFrameType("CHeroBar" , 45 , 0x990ED8 , 0x990F4C)
-                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0x994620 , 0x994710)
-                    call AddFrameType("CInfoBar" , 47 , 0x99197C , 0x000000)
-                    call AddFrameType("CTimeCover" , 48 , 0x994510 , 0x9945F8)
-                    call AddFrameType("CProgressIndicator" , 49 , 0x98B0E4 , 0x000000)
-                    call AddFrameType("CHeroLevelBar" , 50 , 0x991010 , 0x000000)
-                    call AddFrameType("CBuildTimeIndicator" , 51 , 0x98F438 , 0x000000)
-                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0x991778 , 0x000000)
-                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0x9916F8 , 0x000000)
-                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0x991584 , 0x000000)
-                    call AddFrameType("CInfoPanelIconHero" , 55 , 0x991510 , 0x000000)
-                    call AddFrameType("CInfoPanelIconGold" , 56 , 0x99149C , 0x000000)
-                    call AddFrameType("CInfoPanelIconFood" , 57 , 0x991428 , 0x000000)
-                    call AddFrameType("CInfoPanelIconRank" , 58 , 0x9913B4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0x991340 , 0x000000)
-                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0x9912CC , 0x000000)
-                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0x991678 , 0x000000)
-                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0x99116C , 0x000000)
-                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0x9915F8 , 0x000000)
-                    call AddFrameType("CSimpleTexture" , 64 , 0x95CDC4 , 0x000000)
-                endif
-        elseif PatchVersion == "1.27b" then
-                if true then // Generation of Frame Type Table
-                    call AddFrameType("CBackdropFrame" , 1 , 0xA8B5AC , 0xA8B6A8)
-                    call AddFrameType("CButtonFrame" , 2 , 0xA8BC88 , 0xA8BD9C)
-                    call AddFrameType("CChatMode" , 3 , 0xABD488 , 0x000000)
-                    call AddFrameType("CCommandButton" , 4 , 0xABCFF4 , 0x000000)
-                    call AddFrameType("CCursorFrame" , 5 , 0xA8DA14 , 0xA8DB04)
-                    call AddFrameType("CEditBox" , 6 , 0xA8C62C , 0xA8C744)
-                    call AddFrameType("CFrame" , 7 , 0xA8B0D0 , 0xA8B1B8)
-                    call AddFrameType("CFloatingFrame" , 8 , 0xA8DB2C , 0xA8DC14)
-                    call AddFrameType("CGameUI" , 9 , 0xAB9D90 , 0xAB9E78)
-                    call AddFrameType("CHeroBarButton" , 10 , 0xABE768 , 0xABE7E0)
-                    call AddFrameType("CHighlightFrame" , 11 , 0xA8B744 , 0xA8B82C)
-                    call AddFrameType("CLayoutFrame" , 12 , 0xA8D4B4 , 0x000000)
-                    call AddFrameType("CMessageFrame" , 13 , 0xA8B898 , 0xA8B980)
-                    call AddFrameType("CMinimap" , 14 , 0xAB0EE4 , 0xAB0FD4)
-                    call AddFrameType("CModelFrame" , 15 , 0xA8B454 , 0xA8B550)
-                    call AddFrameType("CPortraitButton" , 16 , 0xABFBC0 , 0xABFCE8)
-                    call AddFrameType("CScreenFrame" , 17 , 0xA8DC3C , 0xA8DD24)
-                    call AddFrameType("CSimpleButton" , 18 , 0xA8D304 , 0x000000)
-                    call AddFrameType("CSimpleFontString" , 19 , 0xA8D760 , 0x000000)
-                    call AddFrameType("CSimpleFrame" , 20 , 0xA8D204 , 0x000000)
-                    call AddFrameType("CSimpleGlueFrame" , 21 , 0xA8D7C4 , 0x000000)
-                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
-                    call AddFrameType("CSimpleMessageFrame" , 23 , 0xA8D88C , 0x000000)
-                    call AddFrameType("CSlider" , 24 , 0xA8BDD8 , 0xA8BEF4)
-                    call AddFrameType("CSpriteFrame" , 25 , 0xA8B214 , 0xA8B304)
-                    call AddFrameType("CStatBar" , 26 , 0xABCE78 , 0x000000)
-                    call AddFrameType("CTextArea" , 27 , 0xA8CF7C , 0xA8D090)
-                    call AddFrameType("CTextButtonFrame" , 28 , 0xA8C8CC , 0xA8C9E0)
-                    call AddFrameType("CTextFrame" , 29 , 0xA8B9C0 , 0xA8BAD4)
-                    call AddFrameType("CUberToolTipWar3" , 30 , 0xABCCC8 , 0x000000)
-                    call AddFrameType("CWorldFrameWar3" , 31 , 0xABB66C , 0xABB754)
-                    call AddFrameType("CGlueButtonWar3" , 32 , 0xAA3D00 , 0xAA3E14)
-                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0xAA3E3C , 0xAA3F50)
-                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0xAA59C0 , 0xAA5AD4)
-                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0xAA3F78 , 0xAA408C)
-                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0xAA40B4 , 0xAA41CC)
-                    call AddFrameType("CSlashChatBox" , 37 , 0xAA5238 , 0xAA5350)
-                    call AddFrameType("CTimerTextFrame" , 38 , 0xAA7E70 , 0xAA7F84)
-                    call AddFrameType("CSimpleStatusBar" , 39 , 0xA8D41C , 0x000000)
-                    call AddFrameType("CStatusBar" , 40 , 0xA8BB20 , 0xA8BC28)
-                    call AddFrameType("CUpperButtonBar" , 41 , 0xABC8D8 , 0xABC948)
-                    call AddFrameType("CResourceBar" , 42 , 0xAC16A8 , 0x000000)
-                    call AddFrameType("CSimpleConsole" , 43 , 0xAC05FC , 0x000000)
-                    call AddFrameType("CPeonBar" , 44 , 0xAC0504 , 0xAC0578)
-                    call AddFrameType("CHeroBar" , 45 , 0xABE7FC , 0xABE870)
-                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0xAC1E58 , 0xAC1F48)
-                    call AddFrameType("CInfoBar" , 47 , 0xABF288 , 0x000000)
-                    call AddFrameType("CTimeCover" , 48 , 0xAC1D48 , 0xAC1E30)
-                    call AddFrameType("CProgressIndicator" , 49 , 0xAB8BE8 , 0x000000)
-                    call AddFrameType("CHeroLevelBar" , 50 , 0xABE924 , 0x000000)
-                    call AddFrameType("CBuildTimeIndicator" , 51 , 0xABCD94 , 0x000000)
-                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0xABF084 , 0x000000)
-                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0xABF004 , 0x000000)
-                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0xABEE90 , 0x000000)
-                    call AddFrameType("CInfoPanelIconHero" , 55 , 0xABEE1C , 0x000000)
-                    call AddFrameType("CInfoPanelIconGold" , 56 , 0xABEDA8 , 0x000000)
-                    call AddFrameType("CInfoPanelIconFood" , 57 , 0xABED34 , 0x000000)
-                    call AddFrameType("CInfoPanelIconRank" , 58 , 0xABECC0 , 0x000000)
-                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0xABEC4C , 0x000000)
-                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0xABEBD8 , 0x000000)
-                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0xABEF84 , 0x000000)
-                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0xABEA78 , 0x000000)
-                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0xABEF04 , 0x000000)
-                    call AddFrameType("CSimpleTexture" , 64 , 0xA8D724 , 0x000000)
-                endif
-        elseif PatchVersion == "1.28f" then
-                if true then // Generation of Frame Type Table
-                    call AddFrameType("CBackdropFrame" , 1 , 0xA7AFBC , 0xA7B0B8)
-                    call AddFrameType("CButtonFrame" , 2 , 0xA7B698 , 0xA7B7AC)
-                    call AddFrameType("CChatMode" , 3 , 0xAADE54 , 0x000000)
-                    call AddFrameType("CCommandButton" , 4 , 0xAAD9B8 , 0x000000)
-                    call AddFrameType("CCursorFrame" , 5 , 0xA7D42C , 0xA7D51C)
-                    call AddFrameType("CEditBox" , 6 , 0xA7C03C , 0xA7C154)
-                    call AddFrameType("CFrame" , 7 , 0xA7AAE0 , 0xA7ABC8)
-                    call AddFrameType("CFloatingFrame" , 8 , 0xA7D544 , 0xA7D62C)
-                    call AddFrameType("CGameUI" , 9 , 0xAAA730 , 0xAAA818)
-                    call AddFrameType("CHeroBarButton" , 10 , 0xAAF130 , 0xAAF1A8)
-                    call AddFrameType("CHighlightFrame" , 11 , 0xA7B154 , 0xA7B23C)
-                    call AddFrameType("CLayoutFrame" , 12 , 0xA7CEC4 , 0x000000)
-                    call AddFrameType("CMessageFrame" , 13 , 0xA7B2A8 , 0xA7B390)
-                    call AddFrameType("CMinimap" , 14 , 0xAB0704 , 0xAB07F0)
-                    call AddFrameType("CModelFrame" , 15 , 0xA7AE64 , 0xA7AF60)
-                    call AddFrameType("CPortraitButton" , 16 , 0xAB05B4 , 0xAB06DC)
-                    call AddFrameType("CScreenFrame" , 17 , 0xA7D654 , 0xA7D73C)
-                    call AddFrameType("CSimpleButton" , 18 , 0xA7CD14 , 0x000000)
-                    call AddFrameType("CSimpleFontString" , 19 , 0xA7D178 , 0x000000)
-                    call AddFrameType("CSimpleFrame" , 20 , 0xA7CC14 , 0x000000)
-                    call AddFrameType("CSimpleGlueFrame" , 21 , 0xA7D1DC , 0x000000)
-                    call AddFrameType("CUknown_1" , 22 , 0x000000 , 0x000000)
-                    call AddFrameType("CSimpleMessageFrame" , 23 , 0xA7D2A8 , 0x000000)
-                    call AddFrameType("CSlider" , 24 , 0xA7B7E8 , 0xA7B904)
-                    call AddFrameType("CSpriteFrame" , 25 , 0xA7AC24 , 0xA7AD14)
-                    call AddFrameType("CStatBar" , 26 , 0xAAD83C , 0x000000)
-                    call AddFrameType("CTextArea" , 27 , 0xA7C98C , 0xA7CAA0)
-                    call AddFrameType("CTextButtonFrame" , 28 , 0xA7C2DC , 0xA7C3F0)
-                    call AddFrameType("CTextFrame" , 29 , 0xA7B3D0 , 0xA7B4E4)
-                    call AddFrameType("CUberToolTipWar3" , 30 , 0xAAD684 , 0x000000)
-                    call AddFrameType("CWorldFrameWar3" , 31 , 0xAAC008 , 0xAAC0F0)
-                    call AddFrameType("CGlueButtonWar3" , 32 , 0xA93B68 , 0xA93C7C)
-                    call AddFrameType("CGlueTextButtonWar3" , 33 , 0xA93CA4 , 0xA93DB8)
-                    call AddFrameType("CGlueCheckBoxWar3" , 34 , 0xA95844 , 0xA95958)
-                    call AddFrameType("CGluePopupMenuWar3" , 35 , 0xA93DE0 , 0xA93EF4)
-                    call AddFrameType("CGlueEditBoxWar3" , 36 , 0xA93F1C , 0xA94034)
-                    call AddFrameType("CSlashChatBox" , 37 , 0xA950A0 , 0xA951B8)
-                    call AddFrameType("CTimerTextFrame" , 38 , 0xA97D38 , 0xA97E4C)
-                    call AddFrameType("CSimpleStatusBar" , 39 , 0xA7CE2C , 0x000000)
-                    call AddFrameType("CStatusBar" , 40 , 0xA7B530 , 0xA7B638)
-                    call AddFrameType("CUpperButtonBar" , 41 , 0xAAD28C , 0xAAD2FC)
-                    call AddFrameType("CResourceBar" , 42 , 0xAB20D4 , 0x000000)
-                    call AddFrameType("CSimpleConsole" , 43 , 0xAB1008 , 0x000000)
-                    call AddFrameType("CPeonBar" , 44 , 0xAB0F08 , 0xAB0F7C)
-                    call AddFrameType("CHeroBar" , 45 , 0xAAF1C4 , 0xAAF238)
-                    call AddFrameType("CTimeOfDayIndicator" , 46 , 0xAB2890 , 0xAB2980)
-                    call AddFrameType("CInfoBar" , 47 , 0xAAFC58 , 0x000000)
-                    call AddFrameType("CTimeCover" , 48 , 0xAB2780 , 0xAB2868)
-                    call AddFrameType("CProgressIndicator" , 49 , 0xAA950C , 0x000000)
-                    call AddFrameType("CHeroLevelBar" , 50 , 0xAAF2F0 , 0x000000)
-                    call AddFrameType("CBuildTimeIndicator" , 51 , 0xAAD750 , 0x000000)
-                    call AddFrameType("CInfoPanelDestructableDetail" , 52 , 0xAAFA54 , 0x000000)
-                    call AddFrameType("CInfoPanelItemDetail" , 53 , 0xAAF9D4 , 0x000000)
-                    call AddFrameType("CInfoPanelIconAlly" , 54 , 0xAAF860 , 0x000000)
-                    call AddFrameType("CInfoPanelIconHero" , 55 , 0xAAF7EC , 0x000000)
-                    call AddFrameType("CInfoPanelIconGold" , 56 , 0xAAF778 , 0x000000)
-                    call AddFrameType("CInfoPanelIconFood" , 57 , 0xAAF704 , 0x000000)
-                    call AddFrameType("CInfoPanelIconRank" , 58 , 0xAAF690 , 0x000000)
-                    call AddFrameType("CInfoPanelIconArmor" , 59 , 0xAAF61C , 0x000000)
-                    call AddFrameType("CInfoPanelIconDamage" , 60 , 0xAAF5A8 , 0x000000)
-                    call AddFrameType("CInfoPanelCargoDetail" , 61 , 0xAAF954 , 0x000000)
-                    call AddFrameType("CInfoPanelBuildingDetail" , 62 , 0xAAF448 , 0x000000)
-                    call AddFrameType("CInfoPanelUnitDetail" , 63 , 0xAAF8D4 , 0x000000)
-                    call AddFrameType("CSimpleTexture" , 64 , 0xA7D13C , 0x000000)
-                endif
-            endif
-        endif
+        
     endfunction
 
 //library APIMemoryWC3GameUIButton ends
@@ -7057,7 +7134,7 @@ native IgnoredUnits takes integer unitid returns integer                        
             // These 3 functions will cause 'A000' to return 852099 order id, 'A001' to return 852164 order id and 'A002' to return 852161 order id, instead of the original Berserk order Id.
             call AddBerserkOrder('A000' , 852099) // mempos = 0
             call AddBerserkOrder('A001' , 852164) // mempos = 0x10
-            call AddBerserkOrder('A003' , 852161) // mempos = 0x20
+            call AddBerserkOrder('A002' , 852161) // mempos = 0x20
             //
 
             // If you want to "unhook" the ability, you can functions like these: 
@@ -8252,40 +8329,11 @@ native IgnoredUnits takes integer unitid returns integer                        
         return retval
     endfunction
 
-    function GetFrameLayoutByType takes integer pFrame,integer fid returns integer
-        local boolean case1= fid == 4 or fid == 10 or fid == 12 or ( fid >= 18 and fid <= 23 )
-        local boolean case2= fid == 26 or fid == 30 or fid == 39 or ( fid >= 41 and fid <= 45 )
-        local boolean case3= fid == 47 or ( fid >= 49 and fid <= 64 )
-
-        if fid != 0 then
-            if case1 or case2 or case3 then
-                return pFrame
-            else
-                return pFrame + 0xB4 // if 1.29+ 0xBC
-            endif
-        endif
-
-        return 0
-    endfunction
-
-    function GetFrameLayout takes integer pFrame returns integer
-        return GetFrameLayoutByType(pFrame , GetFrameType(pFrame))
-    endfunction
-
-    function IsFrameLayoutByType takes integer pFrame,integer fid returns boolean
-        return GetFrameLayoutByType(pFrame , fid) == pFrame
-    endfunction
-
-    function IsFrameLayout takes integer pFrame returns boolean
-        return GetFrameLayout(pFrame) == pFrame
-    endfunction
-
     function Init_MemHackCFrameAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("CreateByTagName"), pGameDLL + 0x5C9D00)
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("GetByName"), pGameDLL + 0x5FB110)
-
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("DefaultCStatus"), pGameDLL + 0xAA2824)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("StringManager"), pGameDLL + 0xAE4074)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("FDFHashList"), pGameDLL + 0xAE40C4)
@@ -8295,7 +8343,6 @@ native IgnoredUnits takes integer unitid returns integer                        
         elseif PatchVersion == "1.26a" then
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("CreateByTagName"), pGameDLL + 0x5C9560)
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("GetByName"), pGameDLL + 0x5FA970)
-
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("DefaultCStatus"), pGameDLL + 0xA8C804)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("StringManager"), pGameDLL + 0xACD214)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("FDFHashList"), pGameDLL + 0xACD264)
@@ -8305,7 +8352,6 @@ native IgnoredUnits takes integer unitid returns integer                        
         elseif PatchVersion == "1.27a" then
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("CreateByTagName"), pGameDLL + 0x0909C0)
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("GetByName"), pGameDLL + 0x09EF40)
-
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("DefaultCStatus"), pGameDLL + 0xB662CC)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("StringManager"), pGameDLL + 0xBB9CAC)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("FDFHashList"), pGameDLL + 0xBB9CFC)
@@ -8315,7 +8361,6 @@ native IgnoredUnits takes integer unitid returns integer                        
         elseif PatchVersion == "1.27b" then
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("CreateByTagName"), pGameDLL + 0x0E4740)
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("GetByName"), pGameDLL + 0x0F2CA0)
-
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("DefaultCStatus"), pGameDLL + 0xCE3A4C)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("StringManager"), pGameDLL + 0xD47744)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("FDFHashList"), pGameDLL + 0xD47794)
@@ -8325,7 +8370,6 @@ native IgnoredUnits takes integer unitid returns integer                        
         elseif PatchVersion == "1.28f" then
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("CreateByTagName"), pGameDLL + 0x112D90)
                 call SaveInteger(MemHackTable, StringHash("CFrame"), StringHash("GetByName"), pGameDLL + 0x1212F0)
-
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("DefaultCStatus"), pGameDLL + 0xCB1A94)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("StringManager"), pGameDLL + 0xD0F524)
                 call SaveInteger(MemHackTable, StringHash("CFrameAPI"), StringHash("FDFHashList"), pGameDLL + 0xD0F574)
@@ -8368,12 +8412,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCBackDropFrameTexture takes integer pFrame,string texturepath,boolean flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CBackDropFrame"), StringHash("SetTexture"))
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 1 then
+            if f_name == "CBackdropFrame" then // 1
                 return this_call_6(addr , pFrame , GetStringAddress(texturepath) , 0 , B2I(flag) , 0 , 1)
             endif
         endif
@@ -8411,12 +8455,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCFrameEditBoxAPI:
     function SetCEditBoxFocus takes integer pFrame,boolean flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CEditBox"), StringHash("SetFocus"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 6 then
+            if f_name == "CEditBox" then // 6
                 return this_call_2(addr , pFrame , B2I(flag))
             endif
         endif
@@ -8426,12 +8470,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCEditBoxFont takes integer pFrame,string filename,real height,integer flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CEditBox"), StringHash("SetFont"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 6 then
+            if f_name == "CEditBox" then // 6
                 return this_call_4(addr , pFrame , GetStringAddress(filename) , SetRealIntoMemory(height) , flag)
             endif
         endif
@@ -8441,12 +8485,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function GetCEditBoxText takes integer pFrame returns string
         local integer addr= LoadInteger(MemHackTable, StringHash("CEditBox"), StringHash("GetText"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 6 then
+            if f_name == "CEditBox" then // 6
                 return ToJString(this_call_1(addr , pFrame))
             endif
         endif
@@ -8456,12 +8500,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCEditBoxText takes integer pFrame,string text returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CEditBox"), StringHash("SetText"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 6 or fid == 36 or fid == 37 then
+            if f_name == "CEditBox" or f_name == "CGlueEditBoxWar3" or f_name == "CSlashChatBox" then // 6 | 36 | 37
                 return B2I(this_call_3(addr , pFrame , GetStringAddress(text) , 1) > 0)
             endif
         endif
@@ -8556,6 +8600,34 @@ native IgnoredUnits takes integer unitid returns integer                        
         endif
 
         return 0
+    endfunction
+
+    function SetCLayerVisibility takes integer pFrame,boolean flag returns boolean
+        if flag then
+            return I2B(ShowCLayer(pFrame))
+        else
+            return I2B(HideCLayer(pFrame))
+        endif
+
+        return false
+    endfunction
+    
+    function IsCLayerVisible takes integer pFrame returns boolean
+        if pFrame != 0 then
+            return I2B(ReadRealMemory(pFrame + 0xB0))
+        endif
+
+        return false
+    endfunction
+
+    function SetCLayerPriority takes integer pFrame,integer priority returns boolean
+        if pFrame != 0 then
+            call HideCLayer(pFrame)
+            call WriteRealMemory(pFrame + 0xA8 , priority)
+            return I2B(ShowCLayer(pFrame))
+        endif
+
+        return false
     endfunction
 
     function SetCLayerAlpha takes integer pFrame,integer alpha returns integer
@@ -8793,13 +8865,13 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function GetCLayoutFrameHeight takes integer pFrame returns real
         local integer addr= LoadInteger(MemHackTable, StringHash("CLayoutFrame"), StringHash("GetHeight"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 then
-            set fid=GetFrameType(pFrame)
-
-            if fid != 15 and fid != 19 and fid != 25 and fid != 29 then
-                set pFrame=GetFrameLayoutByType(pFrame , fid)
+            set f_name=GetFrameTypeName(pFrame)
+            
+            if f_name != "CModelFrame" and f_name != "CSimpleFontString" and f_name != "CSpriteFrame" and f_name != "CTextFrame" then // 15 | 19 | 25 | 29
+                set pFrame=GetFrameLayoutByType(pFrame , GetFrameType(pFrame))
 
                 if pFrame != 0 then
                     return GetRealFromMemory(this_call_1(addr , pFrame))
@@ -8870,12 +8942,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCModelFrameAPI:
     function AddCModelFrameModel takes integer pFrame,string model,integer modeltype returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CModelFrame"), StringHash("AddModel"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 15 then
+            if f_name == "CModelFrame" then // 15
                 return this_call_3(addr , pFrame , GetStringAddress(model) , modeltype)
             endif
         endif
@@ -8885,12 +8957,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function GetCModelFrameHeight takes integer pFrame returns real
         local integer addr= LoadInteger(MemHackTable, StringHash("CModelFrame"), StringHash("GetHeight"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 15 then
+            if f_name == "CModelFrame" then // 15
                 return GetRealFromMemory(this_call_1(addr , pFrame))
             endif
         endif
@@ -9563,12 +9635,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSimpleFontStringScale takes integer pFrame,real scale returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFontString"), StringHash("SetScale"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 19 then
+            if f_name == "CSimpleFontString" then // 19
                 return this_call_2(addr , pFrame , SetRealIntoMemory(scale))
             endif
         endif
@@ -9578,12 +9650,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSimpleFontStringFont takes integer pFrame,string filename,real height,integer flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFontString"), StringHash("SetFont"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 and filename != "" then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 19 then
+            if f_name == "CSimpleFontString" then // 19
                 return this_call_4(addr , pFrame , GetStringAddress(filename) , SetRealIntoMemory(height) , flag)
             endif
         endif
@@ -9593,13 +9665,13 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function GetCSimpleFontStringHeight takes integer pFrame returns real
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFontString"), StringHash("GetHeight"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 19 then
-                return GetRealFromMemory(this_call_1(fid , pFrame))
+            if f_name == "CSimpleFontString" then // 19
+                return GetRealFromMemory(this_call_1(addr , pFrame))
             endif
         endif
 
@@ -9608,12 +9680,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSimpleFontText takes integer pFrame,string text returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFontString"), StringHash("SetText"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 19 then
+            if f_name == "CSimpleFontString" then // 19
                 return B2I(this_call_2(addr , pFrame , GetStringAddress(text)) > 0)
             endif
         endif
@@ -9692,15 +9764,55 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         return 0
     endfunction
+    
+    function HideCSimpleFrame takes integer pCSimpleFrame returns boolean
+        local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Hide"))
+
+        if addr != 0 and pCSimpleFrame != 0 then
+            call this_call_1(addr , pCSimpleFrame)
+            return true
+        endif
+
+        return false
+    endfunction
+
+    function ShowCSimpleFrame takes integer pCSimpleFrame returns boolean
+        local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Show"))
+
+        if addr != 0 and pCSimpleFrame != 0 then
+            call this_call_1(addr , pCSimpleFrame)
+            return true
+        endif
+
+        return false
+    endfunction
+    
+    function SetCSimpleFrameVisibility takes integer pCSimpleFrame,boolean flag returns boolean
+        if flag then
+            return ShowCSimpleFrame(pCSimpleFrame)
+        else
+            return HideCSimpleFrame(pCSimpleFrame)
+        endif
+
+        return false
+    endfunction
+
+    function IsCSimpleFrameVisible takes integer pCSimpleFrame returns boolean
+        if pCSimpleFrame != 0 then
+            return ReadRealMemory(pCSimpleFrame + 0x94) == 1
+        endif
+
+        return false
+    endfunction
 
     function SetCSimpleFrameScale takes integer pCSimpleFrame,real scale returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetScale"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pCSimpleFrame != 0 then
-            set fid=GetFrameType(pCSimpleFrame)
+            set f_name=GetFrameTypeName(pCSimpleFrame)
 
-            if fid == 22 or fid == 23 or fid == 39 then
+            if SubString(f_name, 0, 7) == "CSimple" then // 23 | 39
                 return this_call_2(addr , pCSimpleFrame , SetRealIntoMemory(scale))
             endif
         endif
@@ -9712,7 +9824,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetPriority"))
         local integer fid= 0
 
-        if addr != 0 and pCSimpleFrame != 0 then
+        if addr != 0 and pCSimpleFrame != 0 and priority >= 0 and priority <= 8 then
             set fid=GetFrameType(pCSimpleFrame)
 
             if fid != 0 then
@@ -9745,30 +9857,40 @@ native IgnoredUnits takes integer unitid returns integer                        
             if PatchVersion == "1.24e" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Create"), pGameDLL + 0x60A410)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("GetByName"), pGameDLL + 0x61CF10)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Hide"), pGameDLL + 0x60A270)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Show"), pGameDLL + 0x60A2F0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetScale"), pGameDLL + 0x60A1C0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetPriority"), pGameDLL + 0x2F64F0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetParent"), pGameDLL + 0x60A120)
         elseif PatchVersion == "1.26a" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Create"), pGameDLL + 0x609C70)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("GetByName"), pGameDLL + 0x61C770)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Hide"), pGameDLL + 0x609AD0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Show"), pGameDLL + 0x609B50)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetScale"), pGameDLL + 0x609A20)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetPriority"), pGameDLL + 0x2F59B0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetParent"), pGameDLL + 0x609980)
         elseif PatchVersion == "1.27a" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Create"), pGameDLL + 0x0B8C00)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("GetByName"), pGameDLL + 0x0C8FD0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Hide"), pGameDLL + 0x0B96B0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Show"), pGameDLL + 0x0BA100)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetScale"), pGameDLL + 0x0B9FA0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetPriority"), pGameDLL + 0x356430)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetParent"), pGameDLL + 0x0BA040)
         elseif PatchVersion == "1.27b" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Create"), pGameDLL + 0x10C960)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("GetByName"), pGameDLL + 0x11CD30)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Hide"), pGameDLL + 0x10D410)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Show"), pGameDLL + 0x10DE60)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetScale"), pGameDLL + 0x10DD00)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetPriority"), pGameDLL + 0x373BD0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetParent"), pGameDLL + 0x10DDA0)
         elseif PatchVersion == "1.28f" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Create"), pGameDLL + 0x13AE90)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("GetByName"), pGameDLL + 0x14B3E0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Hide"), pGameDLL + 0x13B940)
+                call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("Show"), pGameDLL + 0x13C390)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetScale"), pGameDLL + 0x13C230)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetPriority"), pGameDLL + 0x3A7CA0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleFrame"), StringHash("SetParent"), pGameDLL + 0x13C2D0)
@@ -9780,12 +9902,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCSimpleGlueAPI:
     function SetCSimpleGlueFrameScale takes integer pGlueFrame,real scale returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleGlueFrame"), StringHash("SetScale"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pGlueFrame != 0 then
-            set fid=GetFrameType(pGlueFrame)
+            set f_name=GetFrameTypeName(pGlueFrame)
 
-            if fid == 21 then
+            if f_name == "CSimpleGlueFrame" then // 21
                 return this_call_2(addr , pGlueFrame , SetRealIntoMemory(scale))
             endif
         endif
@@ -9813,12 +9935,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCSimpleMessageFrameAPI:
     function SetCSimpleMessageFrameFont takes integer pFrame,string filename,real height,integer flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleMessageFrame"), StringHash("SetFont"))
-        local integer fid= 0
+        local string f_name= ""
         
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 23 then
+            if f_name == "CSimpleMessageFrame" then // 23
                 return this_call_4(addr , pFrame , GetStringAddress(filename) , SetRealIntoMemory(height) , flag)
             endif
         endif
@@ -9873,17 +9995,18 @@ native IgnoredUnits takes integer unitid returns integer                        
     function SetCSimpleRegionVertexColour takes integer pFrame,integer colour returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleRegion"), StringHash("SetVertexColour"))
         local integer arg= LoadInteger(MemHackTable, StringHash("PointerArray"), 0)
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and arg != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 19 or fid == 39 or fid == 64 then
-                if fid == 39 then
+            if SubString(f_name, 0, 7) == "CSimple" then
+                // old check f_name == "CSimpleFontString" or f_name == "CSimpleStatusBar" or f_name == "CSimpleTexture" => 19 | 39 | 64
+                if f_name == "CSimpleStatusBar" then // 39
                     set pFrame=ReadRealMemory(pFrame + 0x134) // if 1.29+ then 0x138
                 endif
 
-                if pFrame > 0 then
+                if pFrame != 0 then
                     call WriteRealMemory(arg + 0x0 , colour)
                     return this_call_2(addr , pFrame , arg + 0x0)
                 endif
@@ -9927,12 +10050,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCSimpleStatusBarAPI:
     function SetCSimpleStatusBarTexture takes integer pFrame,string texturepath,boolean flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleStatusBar"), StringHash("SetTexture"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 39 then
+            if f_name == "CSimpleStatusBar" then // 39
                 return this_call_3(addr , pFrame , GetStringAddress(texturepath) , B2I(flag))
             endif
         endif
@@ -9942,12 +10065,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSimpleStatusBarValue takes integer pFrame,real value returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleStatusBar"), StringHash("SetValue"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 39 then
+            if f_name == "CSimpleStatusBar" then // 39
                 return this_call_2(addr , pFrame , SetRealIntoMemory(value))
             endif
         endif
@@ -9957,12 +10080,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSimpleStatusBarMinMaxValue takes integer pFrame,real minval,real maxval returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleStatusBar"), StringHash("SetMinMaxValue"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 39 then
+            if f_name == "CSimpleStatusBar" then // 39
                 return this_call_3(addr , pFrame , SetRealIntoMemory(minval) , SetRealIntoMemory(maxval))
             endif
         endif
@@ -10041,11 +10164,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSimpleTextureTexture takes integer pFrame,string texturepath,boolean flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleTexture"), StringHash("SetTexture"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
-            if fid == 64 then
+            set f_name=GetFrameTypeName(pFrame)
+
+            if f_name == "CSimpleTexture" then // 64
                 return this_call_3(addr , pFrame , GetStringAddress(texturepath) , B2I(flag))
             endif
         endif
@@ -10088,12 +10212,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCSliderAPI:
     function SetCSliderCurrentValue takes integer pFrame,real value returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSlider"), StringHash("SetCurrentValue"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 24 then
+            if f_name == "CSlider" then // 24
                 return this_call_3(addr , pFrame , SetRealIntoMemory(value) , 1)
             endif
         endif
@@ -10121,12 +10245,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCSpriteFrameAPI:
     function SetCSpriteFrameArt takes integer pFrame,string model,integer modeltype,boolean flag returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSpriteFrame"), StringHash("SetArt"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 25 then
+            if f_name == "CSpriteFrame" then // 25
                 return this_call_4(addr , pFrame , GetStringAddress(model) , modeltype , B2I(flag))
             endif
         endif
@@ -10136,12 +10260,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function GetCSpriteFrameHeight takes integer pFrame returns real
         local integer addr= LoadInteger(MemHackTable, StringHash("CSpriteFrame"), StringHash("GetHeight"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 25 then
+            if f_name == "CSpriteFrame" then // 25
                 return GetRealFromMemory(this_call_1(addr , pFrame))
             endif
         endif
@@ -10151,12 +10275,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCSpriteFrameScale takes integer pFrame,real scale returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CSpriteFrame"), StringHash("SetScale"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 25 then
+            if f_name == "CSpriteFrame" then // 25
                 return this_call_2(addr , pFrame , SetRealIntoMemory(scale))
             endif
         endif
@@ -10194,12 +10318,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCStatusBarAPI:
     function SetCStatusBarArt takes integer pFrame,string model,integer modeltype returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CStatusBar"), StringHash("SetArt"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 40 then
+            if f_name == "CStatusBar" then // 40
                 return this_call_3(addr , pFrame , GetStringAddress(model) , modeltype)
             endif
         endif
@@ -10208,16 +10332,16 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetCStatusBarValue takes integer pFrame,real value returns integer
-        local integer fid= 0
         local real minval= 0.
         local real maxval= 0.
         local real curval= 0.
         local real newval= 0.
+        local string f_name= ""
 
         if pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 40 then // FUNCTION_CStatusBar__SetValue => 1.27a = 0x0AA870
+            if f_name == "CStatusBar" then // 40 // FUNCTION_CStatusBar__SetValue => 1.27a = 0x0AA870
                 set minval=GetRealFromMemory(ReadRealMemory(pFrame + 0x1B4))
                 set maxval=GetRealFromMemory(ReadRealMemory(pFrame + 0x1B8))
                 set curval=GetRealFromMemory(ReadRealMemory(pFrame + 0x1BC))
@@ -10237,12 +10361,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCStatusBarMinMaxValue takes integer pFrame,real minval,real maxval returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CStatusBar"), StringHash("SetMinMaxValue"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 40 then
+            if f_name == "CStatusBar" then // 40
                 return this_call_3(addr , pFrame , SetRealIntoMemory(minval) , SetRealIntoMemory(maxval))
             endif
         endif
@@ -10275,12 +10399,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCTextAreaAPI:
     function SetCTextAreaText takes integer pFrame,string text returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CTextArea"), StringHash("SetText"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 27 then
+            if f_name == "CTextArea" then // 27
                 return B2I(this_call_2(addr , pFrame , GetStringAddress(text)) > 0)
             endif
         endif
@@ -10308,12 +10432,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCTextFrameAPI:
     function SetCTextFrameTextColour takes integer pFrame,integer colour returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CTextFrame"), StringHash("SetTextColour"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 6 or fid == 29 then
+            if f_name == "CEditBox" or f_name == "CTextFrame" then // 6 | 29
                 return this_call_2(addr , pFrame , colour) // ARGB colour
             endif
         endif
@@ -10327,12 +10451,12 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function GetCTextFrameHeight takes integer pFrame returns real
         local integer addr= LoadInteger(MemHackTable, StringHash("CTextFrame"), StringHash("GetHeight"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 29 then
+            if f_name == "CTextFrame" then // 29
                 return GetRealFromMemory(this_call_1(addr , pFrame))
             endif
         endif
@@ -10342,13 +10466,13 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetCTextFrameText takes integer pFrame,string text returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("CTextFrame"), StringHash("SetText"))
-        local integer fid= 0
+        local string f_name= ""
 
         if addr != 0 and pFrame != 0 then
-            set fid=GetFrameType(pFrame)
+            set f_name=GetFrameTypeName(pFrame)
 
-            if fid == 28 or fid == 33 or fid == 29 or fid == 38 then
-                if fid == 28 or fid == 33 then
+            if f_name == "CTextButtonFrame" or f_name == "CTextFrame" or f_name == "CGlueTextButtonWar3" or f_name == "CTimerTextFrame" then // 28 | 29 | 33 | 38
+                if f_name == "CTextButtonFrame" or f_name == "CGlueTextButtonWar3" then // 28 | 33
                     // if 1.29.2+ then 0x1F4
                     set pFrame=ReadRealMemory(pFrame + 0x1E4)
                 endif
@@ -11417,17 +11541,13 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetFrameModel takes integer pFrame,string model,integer modeltype,boolean flag returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid == 15 then
+        if f_name == "CModelFrame" then // 15
             return AddCModelFrameModel(pFrame , model , modeltype)
-        endif
-
-        if fid == 25 then
+    elseif f_name == "CSpriteFrame" then // 25
             return SetCSpriteFrameArt(pFrame , model , modeltype , flag)
-        endif
-
-        if fid == 40 then
+    elseif f_name == "CStatusBar" then // 40
             return SetCStatusBarArt(pFrame , model , modeltype)
         endif
 
@@ -11455,9 +11575,9 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetFrameStepValue takes integer pFrame,real step returns nothing
-        local integer fid= GetFrameType(pFrame)
-        
-        if fid == 24 then
+        local string f_name= GetFrameTypeName(pFrame)
+
+        if f_name == "CSlider" then // fid == 24
             call WriteRealMemory(pFrame + 0x1F8 , SetRealIntoMemory(step))
         endif
     endfunction
@@ -11517,45 +11637,29 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetFrameTexture takes integer pFrame,string texturepath,boolean flag returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid == 1 or fid == 39 or fid == 64 then
-            if fid == 1 then
-                return SetCBackDropFrameTexture(pFrame , texturepath , flag)
-            endif
-
-            if fid == 39 then
-                return SetCSimpleStatusBarTexture(pFrame , texturepath , flag)
-            endif
-
-            if fid == 64 then
-                return SetCSimpleTextureTexture(pFrame , texturepath , flag)
-            endif
+        if f_name == "CBackdropFrame" then // 1
+            return SetCBackDropFrameTexture(pFrame , texturepath , flag)
+    elseif f_name == "CSimpleStatusBar" then // 39
+            return SetCSimpleStatusBarTexture(pFrame , texturepath , flag)
+    elseif f_name == "CSimpleTexture" then // 64
+            return SetCSimpleTextureTexture(pFrame , texturepath , flag)
         endif
 
         return 0
     endfunction
 
     function SetFrameScale takes integer pFrame,real scale returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid > 0 then
-            if fid == 19 or fid == 21 or fid == 22 or fid == 23 or fid == 39 or fid == 25 then
-                if fid == 19 then
-                    return SetCSimpleFontStringScale(pFrame , scale)
-                endif
-
-                if fid == 21 then
-                    return SetCSimpleGlueFrameScale(pFrame , scale)
-                endif
-
-                if fid == 22 or fid == 23 or fid == 39 then
-                    return SetCSimpleFrameScale(pFrame , scale)
-                endif
-
-                if fid == 25 then
-                    return SetCSpriteFrameScale(pFrame , scale)
-                endif
+        if f_name != "" then
+            if f_name == "CSimpleFontString" then // 19
+                return SetCSimpleFontStringScale(pFrame , scale)
+        elseif f_name == "CSimpleGlueFrame" then // 21
+                return SetCSimpleGlueFrameScale(pFrame , scale)
+        elseif f_name == "CSimpleMessageFrame" or f_name == "CSimpleStatusBar" then // 23 | 39
+                return SetCSimpleFrameScale(pFrame , scale)
             else
                 return SetLayoutFrameScale(pFrame , scale)
             endif
@@ -11565,80 +11669,66 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
     
     function GetFrameValue takes integer pFrame returns real
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
         local integer pOff= 0
-        
-        if fid == 24 or fid == 39 or fid == 40 then
-            if fid == 24 then
-                set pOff=0x500 // if 1.29+ 0x516
-            endif
 
-            if fid == 39 then
-                set pOff=0x130 // if 1.29+ 0x12C
-            endif
+        if f_name == "CSlider" then // 24
+            set pOff=0x500 // if 1.29+ 0x516
+    elseif f_name == "CSimpleStatusBar" then // 39
+            set pOff=0x130 // if 1.29+ 0x12C
+    elseif f_name == "CStatusBar" then // 40
+            set pOff=0x1BC // if 1.29+ 0x1CC
+        endif
 
-            if fid == 40 then
-                set pOff=0x1BC // if 1.29+ 0x1CC
-            endif
-
-            if pOff > 0 then
-                return GetRealFromMemory(ReadRealMemory(pFrame + pOff))
-            endif
+        if pOff != 0 then
+            return ReadRealFloat(pFrame + pOff)
         endif
 
         return 0.
     endfunction
 
     function SetFrameValue takes integer pFrame,real value returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid == 24 or fid == 39 or fid == 40 then
-            if fid == 24 then
-                return SetCSliderCurrentValue(pFrame , value)
-            endif
-
-            if fid == 39 then
-                return SetCSimpleStatusBarValue(pFrame , value)
-            endif
-
-            if fid == 40 then
-                return SetCStatusBarValue(pFrame , value)
-            endif
+        if f_name == "CSlider" then // 24
+            return SetCSliderCurrentValue(pFrame , value)
+    elseif f_name == "CSimpleStatusBar" then // 39
+            return SetCSimpleStatusBarValue(pFrame , value)
+    elseif f_name == "CStatusBar" then // 40
+            return SetCStatusBarValue(pFrame , value)
         endif
 
         return 0
     endfunction
 
     function SetFrameMinMaxValue takes integer pFrame,real minval,real maxval returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
         local real cur_val= 0.
         local real new_val= 0.
 
-        if fid == 24 or fid == 39 or fid == 40 then
-            if minval < maxval then
-                if fid == 24 then
-                    call WriteRealMemory(pFrame + 0x1EC , SetRealIntoMemory(minval))
-                    call WriteRealMemory(pFrame + 0x1F0 , SetRealIntoMemory(maxval))
-                    set cur_val=GetRealFromMemory(ReadRealMemory(pFrame + 0x1F4))
+        if f_name != "" and minval < maxval then
+            if f_name == "CSlider" then // 24
+                call WriteRealMemory(pFrame + 0x1EC , SetRealIntoMemory(minval))
+                call WriteRealMemory(pFrame + 0x1F0 , SetRealIntoMemory(maxval))
+                set cur_val=GetRealFromMemory(ReadRealMemory(pFrame + 0x1F4))
 
-                    if minval <= cur_val then
-                        if cur_val > maxval then
-                            set new_val=maxval
-                        endif
-                    else
-                        set new_val=minval
+                if minval <= cur_val then
+                    if cur_val > maxval then
+                        set new_val=maxval
                     endif
-
-                    return SetCSliderCurrentValue(pFrame , new_val)
+                else
+                    set new_val=minval
                 endif
 
-                if fid == 39 then
-                    return SetCSimpleStatusBarMinMaxValue(pFrame , minval , maxval)
-                endif
+                return SetCSliderCurrentValue(pFrame , new_val)
+            endif
+        
+            if f_name == "CSimpleStatusBar" then // 39
+                return SetCSimpleStatusBarMinMaxValue(pFrame , minval , maxval)
+            endif
 
-                if fid == 40 then
-                    return SetCStatusBarMinMaxValue(pFrame , minval , maxval)
-                endif
+            if f_name == "CStatusBar" then // 40
+                return SetCStatusBarMinMaxValue(pFrame , minval , maxval)
             endif
         endif
 
@@ -11648,23 +11738,19 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     // Frame Point API Engine
     function SetFrameFont takes integer pFrame,string filename,real height,integer flag returns integer
-        local integer fid= GetFrameType(pFrame)
-        
-        if fid == 6 or fid == 19 or fid == 23 then
-            if fid == 6 then
+        local string f_name= GetFrameTypeName(pFrame)
+
+        if f_name != "" then
+            if f_name == "CEditBox" then // 6
                 return SetCEditBoxFont(pFrame , filename , height , flag)
-            endif
-
-            if fid == 19 then
+        elseif f_name == "CSimpleFontString" then // 19
                 return SetCSimpleFontStringFont(pFrame , filename , height , flag)
-            endif
-
-            if fid == 23 then
+        elseif f_name == "CSimpleMessageFrame" then // 23
                 return SetCSimpleMessageFrameFont(pFrame , filename , height , flag)
-            endif
-        else
-            if not IsFrameLayoutByType(pFrame , fid) then
-                return SetLayerFont(pFrame , filename , height , flag)
+            else
+                if not IsFrameLayoutByType(pFrame , GetFrameType(pFrame)) then
+                    return SetLayerFont(pFrame , filename , height , flag)
+                endif
             endif
         endif
 
@@ -11672,9 +11758,9 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
     
     function GetFrameWidth takes integer pFrame returns real
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid > 0 then
+        if f_name != "" then
             return GetRealFromMemory(ReadRealMemory(pFrame + 0x58))
         endif
 
@@ -11682,36 +11768,30 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function GetFrameHeight takes integer pFrame returns real
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid == 15 or fid == 19 or fid == 25 or fid == 29 then
-            if fid == 15 then
+        if f_name != "" then
+            if f_name == "CModelFrame" then // 15
                 return GetCModelFrameHeight(pFrame)
-            endif
-
-            if fid == 19 then
+        elseif f_name == "CSimpleFontString" then // 19
                 return GetCSimpleFontStringHeight(pFrame)
-            endif
-
-            if fid == 25 then
+        elseif f_name == "CSpriteFrame" then // 25
                 return GetCSpriteFrameHeight(pFrame)
-            endif
-
-            if fid == 29 then
+        elseif f_name == "CTextFrame" then // 29
                 return GetCTextFrameHeight(pFrame)
+            else
+                return GetCLayoutFrameHeight(pFrame)
             endif
-            // return GetRealFromMemory( ReadRealMemory( pFrame + 0x5C ) )
-        else
-            return GetCLayoutFrameHeight(pFrame)
         endif
 
+        // return GetRealFromMemory( ReadRealMemory( pFrame + 0x5C ) )
         return 0.
     endfunction
 
     function GetFramePoint takes integer pFrame,integer point returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid > 0 then
+        if f_name != "" then
             return ReadRealMemory(pFrame + 0x4 * point + 0x8)
         endif
 
@@ -11722,7 +11802,7 @@ native IgnoredUnits takes integer unitid returns integer                        
     function GetFrameAbsolutePoint takes integer pFrame,integer point returns integer
         return GetFramePoint(pFrame , point)
     endfunction
-    
+
     function GetFrameAbsolutePointX takes integer pFrame,integer point returns real
         local integer pFramePoint= GetFramePoint(pFrame , point)
 
@@ -11794,9 +11874,9 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     // Frame Text API Engine
     function GetFrameTextMaxLength takes integer pFrame returns integer
-        local integer frameId= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if frameId == 6 then
+        if f_name == "CEditBox" then // 6
             return ReadRealMemory(pFrame + 0x1F0)
         endif
 
@@ -11804,17 +11884,17 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetFrameMaxTextLength takes integer pFrame,integer length returns nothing
-        local integer frameId= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if frameId == 6 then
+        if f_name == "CEditBox" then // 6
             call WriteRealMemory(pFrame + 0x1F0 , length)
         endif
     endfunction
 
     function GetFrameTextLength takes integer pFrame returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid == 6 then
+        if f_name == "CEditBox" then // 6
             return ReadRealMemory(pFrame + 0x1F4)
         endif
 
@@ -11822,23 +11902,17 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function GetFrameText takes integer pFrame returns string
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
         local integer pFrameText= 0
 
-        if fid > 0 then
-            if fid == 6 then
+        if f_name != "" then
+            if f_name == "CEditBox" then // 6
                 set pFrameText=ReadRealMemory(pFrame + 0x1E4)
-            endif
-
-            if fid == 19 then
+        elseif f_name == "CSimpleFontString" then // 19
                 set pFrameText=ReadRealMemory(pFrame + 0x01C)
-            endif
-
-            if fid == 27 then
+        elseif f_name == "CTextArea" then // 27
                 set pFrameText=ReadRealMemory(pFrame + 0x230)
-            endif
-
-            if fid == 29 then
+        elseif f_name == "CTextFrame" then // 29
                 set pFrameText=ReadRealMemory(pFrame + 0x1E8)
             endif
 
@@ -11851,22 +11925,16 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetFrameText takes integer pFrame,string text returns integer
-        local integer fid= GetFrameType(pFrame)
+        local string f_name= GetFrameTypeName(pFrame)
 
-        if fid > 0 then
-            if fid == 6 or fid == 36 or fid == 37 then
+        if f_name != "" then
+            if f_name == "CEditBox" or f_name == "CGlueEditBoxWar3" or f_name == "CSlashChatBox" then // 6 | 36 | 37
                 return SetCEditBoxText(pFrame , text)
-            endif
-
-            if fid == 19 then
+        elseif f_name == "CSimpleFontString" then // 19
                 return SetCSimpleFontText(pFrame , text)
-            endif
-
-            if fid == 27 then
+        elseif f_name == "CTextArea" then // 27
                 return SetCTextAreaText(pFrame , text)
-            endif
-
-            if fid == 28 or fid == 33 or fid == 29 or fid == 38 then
+        elseif f_name == "CTextButtonFrame" or f_name == "CTextFrame" or f_name == "CGlueTextButtonWar3" or f_name == "CTimerTextFrame" then // 28 | 29 | 33 | 38
                 return SetCTextFrameText(pFrame , text)
             endif
         endif
@@ -11994,10 +12062,10 @@ native IgnoredUnits takes integer unitid returns integer                        
     function GetUnitFromGroupByIndex takes group g,integer index returns unit
         local integer pObj= GetAddressGroupAddressUnitByIndex(ConvertHandle(g) , index)
 
-        if pObj > 0 then
+        if pObj != 0 then
             set pObj=ObjectToHandleId(pObj)
 
-            if pObj > 0 then
+            if pObj != 0 then
                 return I2U(pObj)
             endif
         endif
@@ -12016,10 +12084,9 @@ native IgnoredUnits takes integer unitid returns integer                        
                 set pObj=GetAddressGroupAddressUnitByIndex(pObj , GetRandomInt(0, count - 1))
 
                 if pObj != 0 then
-                    
                     set pObj=ObjectToHandleId(pObj)
                     
-                    if pObj > 0 then
+                    if pObj != 0 then
                         return I2U(pObj)
                     endif
                 endif
@@ -15639,37 +15706,6 @@ native IgnoredUnits takes integer unitid returns integer                        
 
 //library TestHookedDamageEvent ends
 //library ZzATestCode:
-
-function TestBenchmarking takes nothing returns nothing
-    local integer p= 0
-    local integer i= 0
-    local integer time= 0
-
-    set i=0
-    set time=GetLocalTime(0)
-    loop
-        exitwhen i == 10000
-        // Some stuff here
-
-        set i=i + 1
-    endloop
-    set time=GetLocalTime(0) - time
-    call BJDebugMsg("First Delay: " + I2S(time) + "ms")
-
-    set i=0
-    set time=GetLocalTime(0)
-    loop
-        exitwhen i == 10000
-        // Some other stuff here
-
-        set i=i + 1
-    endloop
-    set time=GetLocalTime(0) - time
-    call BJDebugMsg("Second Delay: " + I2S(time) + "ms")
-    
-    call SetCustomUnitAbilityCharges(uTemp , 'AOsh' , 2)
-endfunction
-
 function PrintMemHackData takes nothing returns nothing
     call BJDebugMsg("pGameDLL: " + IntToHex(pGameDLL))
     call BJDebugMsg("iGameVersion: " + IntToHex(iGameVersion))
@@ -15678,21 +15714,43 @@ function PrintMemHackData takes nothing returns nothing
     call BJDebugMsg("pJassHandleTable: " + IntToHex(GetJassTable()))
 endfunction
 
-function TestTimerSpeed takes nothing returns nothing
-    set iTemp=iTemp + 1
-    
-    if iTemp == 100 then
-        call PauseTimer(GetExpiredTimer())
-        call BJDebugMsg("iTemp = " + I2S(iTemp))
-        call BJDebugMsg("Elapsed = " + R2S(TimerGetElapsed(GetExpiredTimer())))
-    endif
+function TestBenchmarking takes nothing returns nothing
+    local integer p= 0
+    local integer i= 0
+    local integer j= 0
+    local real r= 0.
+    local integer time1= 0
+    local integer time2= 0
+
+    set i=0
+    set time1=GetLocalTime(0)
+    loop
+        exitwhen i == 10000
+        // Some stuff here
+
+        set i=i + 1
+    endloop
+    set time1=GetLocalTime(0) - time1
+
+    set i=0
+    set time2=GetLocalTime(0)
+    loop
+        exitwhen i == 10000
+        // Some other stuff here
+
+        set i=i + 1
+    endloop
+    set time2=GetLocalTime(0) - time2
+
+    call BJDebugMsg("First Delay: " + I2S(time1) + "ms")
+    call BJDebugMsg("Second Delay: " + I2S(time2) + "ms")
 endfunction
 
 function Init_TestCode takes nothing returns nothing
-    local trigger t= null
-    local integer i= 1
-    local integer pFrame= 0
-
+    local integer i= 0
+    
+    
+    set gTemp=CreateGroup()
     call EnableOPLimit(false) // This removes operation limit, hence allowing us to use benchmark method above.
     // Since it has over 20000 complex operations, we need to remove limit to complete benchmark without exiting the thread until it fully completes.
     //call LoadTOCFile( "UI\\Data\\List.toc" ) // not needed for code testing, you can however load your own TOCs.
@@ -15705,23 +15763,17 @@ function Init_TestCode takes nothing returns nothing
     call SetUnitAttackSpeed(uTemp , 6.)
     call SetUnitBaseDamage(uTemp , 10000)
 
-    
-    call UnitAddAbility(uTemp, 'AOsh')
-    call SetUnitAbilityLevel(uTemp, 'AOsh', 2)
-
     call UnitAddAbility(uTemp, 'A000')
     call UnitAddAbility(uTemp, 'A001')
-    //call UnitAddAbility( uTemp, 'A002' )
-    call UnitAddAbility(uTemp, 'A003')
-    call UnitAddAbility(uTemp, 'AOws')
-    call UnitAddAbility(uTemp, 'AUcs')
-    call UnitAddAbility(uTemp, 'AHbz')
+    call UnitAddAbility(uTemp, 'A002')
+    //call UnitAddAbility( uTemp, 'A003' )
+    
+    //call UnitAddAbility( uTemp, 'AOsh' )
+    //call UnitAddAbility( uTemp, 'AOws' )
+    //call UnitAddAbility( uTemp, 'AUcs' )
+    //call UnitAddAbility( uTemp, 'AHbz' )
 
     call TimerStart(GetExpiredTimer(), .1, false, function TestBenchmarking)
-    return
-
-    
-    
     //call TimerStart( CreateTimer( ), .0, true, function TestTimerSpeed )
 endfunction
 
@@ -15767,7 +15819,7 @@ endfunction
 // 
 //   Warcraft III map script
 //   Generated by the Warcraft III World Editor
-//   Date: Sun May 15 17:04:38 2022
+//   Date: Thu May 19 13:58:21 2022
 //   Map Author: Unryze & quq_CCCP
 // 
 //===========================================================================
@@ -15784,6 +15836,18 @@ endfunction
 
 //***************************************************************************
 //*
+//*  Items
+//*
+//***************************************************************************
+
+function CreateAllItems takes nothing returns nothing
+    local integer itemID
+
+    call CreateItem('shas', 1623.3, - 266.7)
+endfunction
+
+//***************************************************************************
+//*
 //*  Unit Creation
 //*
 //***************************************************************************
@@ -15796,7 +15860,7 @@ function CreateNeutralPassiveBuildings takes nothing returns nothing
     local trigger t
     local real life
 
-    set u=CreateUnit(p, 'nmer', 256.0, 0.0, 270.000)
+    set u=CreateUnit(p, 'nmer', 1856.0, - 64.0, 270.000)
     call SetUnitColor(u, ConvertPlayerColor(0))
 endfunction
 
@@ -15834,7 +15898,7 @@ endfunction
 //===========================================================================
 // Trigger: APITypecast
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=434
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15844,7 +15908,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemory
 //===========================================================================
-//TESH.scrollpos=494
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 
@@ -15858,7 +15922,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryCalls
 //===========================================================================
-//TESH.scrollpos=882
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15939,7 +16003,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryGameUI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=385
 //TESH.alwaysfold=0
 
 function InitTrig_APIMemoryGameUI takes nothing returns nothing
@@ -15948,7 +16012,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryGameUIButton
 //===========================================================================
-//TESH.scrollpos=401
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15978,7 +16042,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCFrameAPI
 //===========================================================================
-//TESH.scrollpos=99
+//TESH.scrollpos=68
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15988,7 +16052,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCLayerAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=51
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15998,7 +16062,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCLayoutFrameAPI
 //===========================================================================
-//TESH.scrollpos=65
+//TESH.scrollpos=9
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16008,7 +16072,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCBackDropFrameAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=18
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16048,7 +16112,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSimpleFontAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=67
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16068,7 +16132,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSimpleFrameAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=42
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16168,7 +16232,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSimpleRegionAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=27
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16178,7 +16242,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackFrameAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=571
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16321,7 +16385,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackEffectAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=51
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16379,7 +16443,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackGroupAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=14
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16401,7 +16465,7 @@ endfunction
 //===========================================================================
 // Trigger: InitMemoryHack
 //===========================================================================
-//TESH.scrollpos=53
+//TESH.scrollpos=5
 //TESH.alwaysfold=0
 function Init_MemoryHack takes nothing returns nothing
     if PatchVersion != "" then
@@ -16422,6 +16486,7 @@ function Init_MemoryHack takes nothing returns nothing
         call Init_APIMemoryMPQ() // API for managing MPQs and files in general, generally this is useless to average mapmaker.
         call Init_APIMemoryString() // API for getting/setting strings from/into memory, most functions use this!
         call Init_APIMemoryStormDLL() // API containing some needed functions from Storm.dll, be cautious with this API.
+        call Init_APIMemoryFrameData() // API containing base Frame data and its checks
         call Init_APIMemoryGameData() // API for getting essential data from memory.
         call Init_APIMemoryObjectData() // API for object data modification, Effect/Trackable and some Unit functions refer to this.
         call Init_APIMemoryGameUI() // API for general UI handling, and GameUI structure, serves as a core to FrameAPI and UIAPI.
@@ -16505,7 +16570,7 @@ endfunction
 // This is a specific trigger/code made for versions 1.27b and above, more information about it will be explained in the comments in the code itself.
 // For those who are below 1.27b (1.27a and lower) can ignore this "main" function hook, meaning all you have to do is disable this trigger.
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=12
 //TESH.alwaysfold=0
 
 
@@ -16587,7 +16652,7 @@ endfunction
 // This trigger can be safely removed, since you need to configure Init_BerserkAbilityHook for it to actually do anything.
 // Make sure you read the instructions CAREFULLY, mistake is NOT an option!
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=111
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16611,8 +16676,19 @@ endfunction
 //
 // This code can be removed, as it is only is needed for tests it yields no benefits or usage elsewise.
 //===========================================================================
-//TESH.scrollpos=45
+//TESH.scrollpos=57
 //TESH.alwaysfold=0
+
+//===========================================================================
+// Trigger: APIMemoryFrameData
+//===========================================================================
+//TESH.scrollpos=54
+//TESH.alwaysfold=0
+
+//===========================================================================
+function InitTrig_APIMemoryFrameData takes nothing returns nothing
+    //set gg_trg_APIMemoryFrameData = CreateTrigger(  )
+endfunction
 
 //===========================================================================
 function InitCustomTriggers takes nothing returns nothing
@@ -16681,6 +16757,7 @@ function InitCustomTriggers takes nothing returns nothing
     call InitTrig_MemHackBerserkHook()
     call InitTrig_MemHackCustomAbilityChargesHook()
     call InitTrig_Testing()
+    call InitTrig_APIMemoryFrameData()
 endfunction
 
 //***************************************************************************
@@ -16773,6 +16850,7 @@ function main takes nothing returns nothing
 // Also, this allows you as a user to freely control what is and what is NOT needed in your map.
 call InitTrig_InitMemoryHack()
 call CreateAllUnits()
+call CreateAllItems()
 // Now that MemHack is loaded, you can call whatever functions you need. Initialisers and such, but remember, do NOT put ANYTHING above MemHack execution.
 // Your stuff goes here...
 // Note, if you are too lazy to re-do everything, you can check what your main function currently contains.

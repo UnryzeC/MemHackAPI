@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=111
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackBerserkHook
@@ -120,7 +120,7 @@ library MemoryHackBerserkHook
             // These 3 functions will cause 'A000' to return 852099 order id, 'A001' to return 852164 order id and 'A002' to return 852161 order id, instead of the original Berserk order Id.
             call AddBerserkOrder( 'A000', 852099 ) // mempos = 0
             call AddBerserkOrder( 'A001', 852164 ) // mempos = 0x10
-            call AddBerserkOrder( 'A003', 852161 ) // mempos = 0x20
+            call AddBerserkOrder( 'A002', 852161 ) // mempos = 0x20
             //
 
             // If you want to "unhook" the ability, you can functions like these: 

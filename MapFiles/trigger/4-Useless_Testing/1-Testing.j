@@ -1,48 +1,21 @@
-//TESH.scrollpos=45
+//TESH.scrollpos=57
 //TESH.alwaysfold=0
 //! nocjass
 library SystemDebug
     globals
+        group gTemp = null
         unit uTemp = null
         effect eTemp = null
         integer iTemp = 0
+        //hashtable htTemp = InitHashtable( )
+        
+        player pTemp = Player( 0 )
 
         boolean testout = true
     endglobals
 endlibrary
 
 library ZzATestCode
-
-function TestBenchmarking takes nothing returns nothing
-    local integer p     = 0
-    local integer i     = 0
-    local integer time  = 0
-
-    set i    = 0
-    set time = GetLocalTime( 0 )
-    loop
-        exitwhen i == 10000
-        // Some stuff here
-
-        set i = i + 1
-    endloop
-    set time  = GetLocalTime( 0 ) - time
-    call BJDebugMsg( "First Delay: " + I2S( time ) + "ms" )
-
-    set i    = 0
-    set time = GetLocalTime( 0 )
-    loop
-        exitwhen i == 10000
-        // Some other stuff here
-
-        set i = i + 1
-    endloop
-    set time  = GetLocalTime( 0 ) - time
-    call BJDebugMsg( "Second Delay: " + I2S( time ) + "ms" )
-    
-    call SetCustomUnitAbilityCharges( uTemp, 'AOsh', 2 )
-endfunction
-
 function PrintMemHackData takes nothing returns nothing
     call BJDebugMsg( "pGameDLL: " + IntToHex( pGameDLL ) )
     call BJDebugMsg( "iGameVersion: " + IntToHex( iGameVersion ) )
@@ -51,21 +24,43 @@ function PrintMemHackData takes nothing returns nothing
     call BJDebugMsg( "pJassHandleTable: "  + IntToHex( GetJassTable( ) ) )
 endfunction
 
-function TestTimerSpeed takes nothing returns nothing
-    set iTemp = iTemp + 1
-    
-    if iTemp == 100 then
-        call PauseTimer( GetExpiredTimer( ) )
-        call BJDebugMsg( "iTemp = " + I2S( iTemp ) )
-        call BJDebugMsg( "Elapsed = " + R2S( TimerGetElapsed( GetExpiredTimer( ) ) ) )
-    endif
+function TestBenchmarking takes nothing returns nothing
+    local integer p     = 0
+    local integer i     = 0
+    local integer j     = 0
+    local real r        = 0.
+    local integer time1 = 0
+    local integer time2 = 0
+
+    set i    = 0
+    set time1 = GetLocalTime( 0 )
+    loop
+        exitwhen i == 10000
+        // Some stuff here
+
+        set i = i + 1
+    endloop
+    set time1  = GetLocalTime( 0 ) - time1
+
+    set i    = 0
+    set time2 = GetLocalTime( 0 )
+    loop
+        exitwhen i == 10000
+        // Some other stuff here
+
+        set i = i + 1
+    endloop
+    set time2  = GetLocalTime( 0 ) - time2
+
+    call BJDebugMsg( "First Delay: " + I2S( time1 ) + "ms" )
+    call BJDebugMsg( "Second Delay: " + I2S( time2 ) + "ms" )
 endfunction
 
 function Init_TestCode takes nothing returns nothing
-    local trigger t = null
-    local integer i = 1
-    local integer pFrame = 0
-
+    local integer i = 0
+    
+    
+    set gTemp = CreateGroup( )
     call EnableOPLimit( false ) // This removes operation limit, hence allowing us to use benchmark method above.
     // Since it has over 20000 complex operations, we need to remove limit to complete benchmark without exiting the thread until it fully completes.
     //call LoadTOCFile( "UI\\Data\\List.toc" ) // not needed for code testing, you can however load your own TOCs.
@@ -78,23 +73,17 @@ function Init_TestCode takes nothing returns nothing
     call SetUnitAttackSpeed( uTemp, 6. )
     call SetUnitBaseDamage( uTemp, 10000 )
 
-    
-    call UnitAddAbility( uTemp, 'AOsh' )
-    call SetUnitAbilityLevel( uTemp, 'AOsh', 2 )
-
     call UnitAddAbility( uTemp, 'A000' )
     call UnitAddAbility( uTemp, 'A001' )
-    //call UnitAddAbility( uTemp, 'A002' )
-    call UnitAddAbility( uTemp, 'A003' )
-    call UnitAddAbility( uTemp, 'AOws' )
-    call UnitAddAbility( uTemp, 'AUcs' )
-    call UnitAddAbility( uTemp, 'AHbz' )
+    call UnitAddAbility( uTemp, 'A002' )
+    //call UnitAddAbility( uTemp, 'A003' )
+    
+    //call UnitAddAbility( uTemp, 'AOsh' )
+    //call UnitAddAbility( uTemp, 'AOws' )
+    //call UnitAddAbility( uTemp, 'AUcs' )
+    //call UnitAddAbility( uTemp, 'AHbz' )
 
     call TimerStart( GetExpiredTimer( ), .1, false, function TestBenchmarking )
-    return
-
-    
-    
     //call TimerStart( CreateTimer( ), .0, true, function TestTimerSpeed )
 endfunction
 
