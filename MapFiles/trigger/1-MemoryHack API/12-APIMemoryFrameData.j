@@ -1,4 +1,4 @@
-//TESH.scrollpos=54
+//TESH.scrollpos=57
 //TESH.alwaysfold=0
 library APIMemoryFrameData
     function GetFrameType takes integer pFrame returns integer
@@ -68,16 +68,19 @@ library APIMemoryFrameData
     function AddFrameType takes string name, integer vtype, integer pVtable, integer pVTableObj returns nothing
         local integer hid = StringHash( "FrameTypeTable" )
 
-        call SaveStr(     MemHackTable, hid, vtype,          name  )
-        call SaveInteger( MemHackTable, hid, vtype,          pGameDLL + pVtable )
-        call SaveInteger( MemHackTable, hid, vtype + 0x1000, pGameDLL + pVTableObj )
+        if pVtable != 0 then
+            call SaveStr(     MemHackTable, hid, vtype,          name  )
+            call SaveInteger( MemHackTable, hid, vtype,          pGameDLL + pVtable )
 
-        call SaveStr(     MemHackTable, hid, pGameDLL + pVtable,    name  )
-        call SaveInteger( MemHackTable, hid, pGameDLL + pVtable,    vtype )
+            call SaveStr(     MemHackTable, hid, pGameDLL + pVtable,    name  )
+            call SaveInteger( MemHackTable, hid, pGameDLL + pVtable,    vtype )
 
-        if pVTableObj != 0 then
-            call SaveInteger( MemHackTable, hid, pGameDLL + pVTableObj, vtype )
-            call SaveStr(     MemHackTable, hid, pGameDLL + pVTableObj, name  )
+            if pVTableObj != 0 then
+                call SaveInteger( MemHackTable, hid, vtype + 0x1000, pGameDLL + pVTableObj )
+
+                call SaveInteger( MemHackTable, hid, pGameDLL + pVTableObj, vtype )
+                call SaveStr(     MemHackTable, hid, pGameDLL + pVTableObj, name  )
+            endif
         endif
     endfunction
     
