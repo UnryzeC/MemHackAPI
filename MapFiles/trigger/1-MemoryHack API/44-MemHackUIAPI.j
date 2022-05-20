@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=3
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackUIAPI
@@ -16,19 +16,8 @@ library MemoryHackUIAPI
     endglobals
 
     function SetUIFramePoint takes integer pFrame, integer point, integer pParentFrame, integer relativePoint, real x, real y returns integer
-        local integer fid_1 = GetFrameType( pFrame )
-        local integer fid_2 = GetFrameType( pParentFrame )
-
-        if fid_1 > 0 and fid_2 > 0 then
-            if fid_1 != 9 then
-                set pFrame = GetFrameLayoutByType( pFrame, fid_1 )
-            endif
-
-            if fid_2 != 9 then
-                set pParentFrame = GetFrameLayoutByType( pParentFrame, fid_2 )
-            endif
-
-            return SetCLayoutFramePoint( pFrame, point, pParentFrame, relativePoint, x, y )
+        if pFrame != 0 and pParentFrame != 0 then
+            return SetCLayoutFramePoint( GetFrameLayoutByType( pFrame, GetFrameType( pFrame ) ), point, GetFrameLayoutByType( pParentFrame, GetFrameType( pParentFrame ) ), relativePoint, x, y )
         endif
 
         return 0
@@ -37,9 +26,9 @@ library MemoryHackUIAPI
     function HideUI takes nothing returns nothing
         local integer pRootFrame = GetRootFrame( )
 
-        if pRootFrame > 0 then
-            call SetUIFramePoint( GetUIUpperButtonBarFrame( ), ANCHOR_TOPLEFT, pRootFrame, ANCHOR_TOPLEFT, 0.0, 1.0 )
-            call SetUIFramePoint( GetUIResourceBarFrame( ), ANCHOR_TOPRIGHT, pRootFrame, ANCHOR_TOPRIGHT, 0.0, 1.0 )
+        if pRootFrame != 0 then
+            call SetUIFramePoint( GetUIUpperButtonBarFrame( ), ANCHOR_TOPLEFT, pRootFrame, ANCHOR_TOPLEFT, 0.0, 1.0 ) // crash
+            call SetUIFramePoint( GetUIResourceBarFrame( ), ANCHOR_TOPRIGHT, pRootFrame, ANCHOR_TOPRIGHT, 0.0, 1.0 ) // crash
 
             call SetUIFramePoint( GetUISimpleConsole( ), ANCHOR_TOPLEFT, pRootFrame, ANCHOR_TOPLEFT, 10.0, 0.0 )
             call SetUIFramePoint( GetUISimpleConsole( ), ANCHOR_TOPRIGHT, pRootFrame, ANCHOR_TOPRIGHT, -10.0, 0.0 )
@@ -47,8 +36,8 @@ library MemoryHackUIAPI
             call SetUIFramePoint( GetUIPortrait( ), ANCHOR_BOTTOMLEFT, pRootFrame, ANCHOR_BOTTOMLEFT, 1.0, 1.0 )
             call SetUIFramePoint( GetUIMinimap( ), ANCHOR_BOTTOMLEFT, pRootFrame, ANCHOR_BOTTOMLEFT, 1.0, 1.0 )
 
-            call SetUIFramePoint( GetUIPeonBar( ), ANCHOR_BOTTOMLEFT, pRootFrame, ANCHOR_BOTTOMLEFT, 1.0, 1.0 )
-            call SetUIFramePoint( GetUIHeroBar( ), ANCHOR_TOPLEFT, pRootFrame, ANCHOR_TOPLEFT, 0.0, 1.0 )
+            call SetUIFramePoint( GetUIPeonBar( ), ANCHOR_BOTTOMLEFT, pRootFrame, ANCHOR_BOTTOMLEFT, 1.0, 1.0 ) // crash
+            call SetUIFramePoint( GetUIHeroBar( ), ANCHOR_TOPLEFT, pRootFrame, ANCHOR_TOPLEFT, 0.0, 1.0 ) // crash
 
             call SetUIFramePoint( GetUITimeOfDayIndicator( ), ANCHOR_BOTTOMLEFT, pRootFrame, ANCHOR_BOTTOMLEFT, 1.0, 1.0 )
             call SetUIFramePoint( ReadRealMemory( GetUITimeOfDayIndicator( ) + 0x1B0 ), ANCHOR_TOP, pRootFrame, ANCHOR_TOP, 1.0, 0.0 ) // TimeOfDayIndicator UBERTIP
@@ -60,7 +49,7 @@ library MemoryHackUIAPI
     function ShowUI takes nothing returns nothing
         local integer pRootFrame = GetRootFrame( )
 
-        if pRootFrame > 0 then
+        if pRootFrame != 0 then
             call SetUIFramePoint( GetUIUpperButtonBarFrame( ), ANCHOR_TOPLEFT, pRootFrame, ANCHOR_TOPLEFT, 0.0, 0.0 )
             call SetUIFramePoint( GetUIResourceBarFrame( ), ANCHOR_TOPRIGHT, pRootFrame, ANCHOR_TOPRIGHT, 0.0, 0.0 )
 
@@ -84,7 +73,7 @@ library MemoryHackUIAPI
         local integer pRootFrame        = GetRootFrame( )
         local integer pWorldFrameWar3   = GetUIWorldFrameWar3( )// + 0xB4
 
-        if pRootFrame > 0 then
+        if pRootFrame != 0 then
             call SetUIFramePoint( pWorldFrameWar3, ANCHOR_TOPRIGHT, pRootFrame, ANCHOR_TOPRIGHT, topX, topY )
             call SetUIFramePoint( pWorldFrameWar3, ANCHOR_BOTTOMLEFT, pRootFrame, ANCHOR_BOTTOMLEFT, botX, botY )
         endif

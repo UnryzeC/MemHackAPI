@@ -1,4 +1,4 @@
-//TESH.scrollpos=385
+//TESH.scrollpos=45
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryWC3GameUI
