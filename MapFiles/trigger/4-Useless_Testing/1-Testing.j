@@ -1,4 +1,4 @@
-//TESH.scrollpos=57
+//TESH.scrollpos=73
 //TESH.alwaysfold=0
 //! nocjass
 library SystemDebug
@@ -6,11 +6,11 @@ library SystemDebug
         group gTemp = null
         unit uTemp = null
         effect eTemp = null
+        item itTemp = null
         integer iTemp = 0
+        trigger tTemp = null
         //hashtable htTemp = InitHashtable( )
         
-        player pTemp = Player( 0 )
-
         boolean testout = true
     endglobals
 endlibrary
@@ -54,28 +54,47 @@ function TestBenchmarking takes nothing returns nothing
 
     call BJDebugMsg( "First Delay: " + I2S( time1 ) + "ms" )
     call BJDebugMsg( "Second Delay: " + I2S( time2 ) + "ms" )
+    
+    call ClickFrame( GetCommandBarButton( 0 ) )
+endfunction
+
+function debilizm takes nothing returns nothing
+    call CreateUnit( Player( 0 ), 'hpea', 0., 0., 0. )
+endfunction
+
+function TestCondition takes nothing returns boolean
+    return true
+endfunction
+
+function TestConditionFalse takes nothing returns boolean
+    return false
 endfunction
 
 function Init_TestCode takes nothing returns nothing
     local integer i = 0
-    
-    
-    set gTemp = CreateGroup( )
+    local integer mem = 0
+
     call EnableOPLimit( false ) // This removes operation limit, hence allowing us to use benchmark method above.
     // Since it has over 20000 complex operations, we need to remove limit to complete benchmark without exiting the thread until it fully completes.
     //call LoadTOCFile( "UI\\Data\\List.toc" ) // not needed for code testing, you can however load your own TOCs.
 
-    set uTemp = CreateUnit( Player( 0 ), 'H000', 600., -200., 270 )
-    call SetUnitMaxLife( uTemp, 99999. )
-    call SetUnitLifeRegen( uTemp, 9999. )
-    call SetUnitMaxMana( uTemp, 99999. )
-    call SetUnitManaRegen( uTemp, 9999. )
-    call SetUnitAttackSpeed( uTemp, 6. )
-    call SetUnitBaseDamage( uTemp, 10000 )
+    if true then
+        set uTemp = CreateUnit( Player( 0 ), 'H000', 600., -200., 270 )
+        call SetUnitMaxLife( uTemp, 99999. )
+        call SetUnitLifeRegen( uTemp, 9999. )
+        call SetUnitMaxMana( uTemp, 99999. )
+        call SetUnitManaRegen( uTemp, 9999. )
+        call SetUnitAttackSpeed( uTemp, 6. )
+        call SetUnitBaseDamage( uTemp, 10000 )
+        
+        call UnitAddAbility( uTemp, 'AIsr' )
 
-    call UnitAddAbility( uTemp, 'A000' )
-    call UnitAddAbility( uTemp, 'A001' )
-    call UnitAddAbility( uTemp, 'A002' )
+        call UnitAddAbility( uTemp, 'A000' )
+        call UnitAddAbility( uTemp, 'A001' )
+        call UnitAddAbility( uTemp, 'A002' )
+    endif
+
+    call SelectUnit( uTemp, true )
     //call UnitAddAbility( uTemp, 'A003' )
     
     //call UnitAddAbility( uTemp, 'AOsh' )

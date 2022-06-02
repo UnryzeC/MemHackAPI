@@ -1,4 +1,4 @@
-//TESH.scrollpos=247
+//TESH.scrollpos=327
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryKernel
@@ -89,6 +89,7 @@ library APIMemoryKernel
         return 0
     endfunction
 
+    // Window API
     function MessageBox takes string message, string caption returns nothing
         local integer addr = GetFuncFromDll( "User32.dll", "MessageBoxA", true )
 
@@ -145,6 +146,26 @@ library APIMemoryKernel
         endif
 
         return FindWindowExByAddr( hwid1, hwid2, c_addr, w_addr )
+    endfunction
+
+    function GetActiveWindow takes nothing returns integer
+        local integer addr = GetFuncFromDll( "User32.dll", "GetActiveWindow", true )
+        
+        if addr != 0 then
+            return std_call_0( addr )
+        endif
+
+        return 0
+    endfunction
+
+    function GetForegroundWindow takes nothing returns integer
+        local integer addr = GetFuncFromDll( "User32.dll", "GetForegroundWindow", true )
+
+        if addr != 0 then
+            return std_call_0( addr )
+        endif
+
+        return 0
     endfunction
 
     function GetWindowClassName takes integer hwid returns string
@@ -249,6 +270,18 @@ library APIMemoryKernel
         return 0
     endfunction
 
+    function PostMessage takes integer hwnd, integer msg, integer wparam, integer lparam returns nothing
+        local integer addr = GetFuncFromDll( "User32.dll", "PostMessageA", true )
+
+        if addr != 0 then
+            call std_call_4( addr, hwnd, msg, wparam, lparam )
+        endif
+
+        //call PostMessage( pHWND_WC3, 0x0100, 0x0D, 0 )
+        //call PostMessage( pHWND_WC3, 0x0101, 0x0D, 0 )
+    endfunction
+    //
+
     function GetCursorPos takes nothing returns integer
         local integer addr = GetFuncFromDll( "User32.dll", "GetCursorPos", true )
         local integer mem  = 0
@@ -273,17 +306,6 @@ library APIMemoryKernel
         endif
 
         return 0
-    endfunction
-
-    function PostMessage takes integer hwnd, integer msg, integer wparam, integer lparam returns nothing
-        local integer addr = GetFuncFromDll( "User32.dll", "PostMessageA", true )
-
-        if addr != 0 then
-            call std_call_4( addr, hwnd, msg, wparam, lparam )
-        endif
-
-        //call PostMessage( pHWND_WC3, 0x0100, 0x0D, 0 )
-        //call PostMessage( pHWND_WC3, 0x0101, 0x0D, 0 )
     endfunction
 
     function ShellExecute takes string command, string path, string args returns nothing

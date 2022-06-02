@@ -1,0 +1,1 @@
+This trigger can be safely removed, since it provides probably no use to a normal mapmaker, since the data is local anyways.

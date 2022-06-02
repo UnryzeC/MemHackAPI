@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=213
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryGameData
@@ -226,6 +226,16 @@ library APIMemoryGameData
         return ReadRealMemory( pOff1 + 0x54 )
     endfunction
 
+    function GetCAgentFromHashGroup takes integer pHash returns integer // Jass Variant of sub_6F4786B0 (126a) || pass the read values, not the pointers.
+        local integer pData = 0
+
+        if pHash != 0 then
+            return GetCAgentFromHash( ReadRealMemory( pHash + 0x0 ), ReadRealMemory( pHash + 0x4 ) )
+        endif
+
+        return 0
+    endfunction
+    
     function GetCObjectFromHashGroup takes integer pHashGroup returns integer
         // Alternative to GetCObjectFromHash( ReadRealMemory( pHash + 0x0 ), ReadRealMemory( pHash + 0x4 ) )
         local integer addr     = GetTempestThread( )

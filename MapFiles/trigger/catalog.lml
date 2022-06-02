@@ -16,100 +16,101 @@
     14-APIMemoryGameUI: APIMemoryGameUI
     15-APIMemoryGameUIButton: APIMemoryGameUIButton
     16-APIMemoryGameWindow: APIMemoryGameWindow
-    17----------------------------: ---------------------------
+    17-APIMemoryUtilityLibraryAPI: APIMemoryUtilityLibraryAPI
+    18----------------------------: ---------------------------
         Comment
-    '18-----------MH Constants API----------': '----------MH Constants API----------'
+    '19-----------MH Constants API----------': '----------MH Constants API----------'
         Comment
-    19-MemHackConstantsAPI: MemHackConstantsAPI
-    '20-----------Frame API----------': '----------Frame API----------'
+    20-MemHackConstantsAPI: MemHackConstantsAPI
+    '21-----------Frame API----------': '----------Frame API----------'
         Comment
-    21-MemHackCFrameAPI: MemHackCFrameAPI
-    '22-Frame Types': '       Frame Types       '
+    22-MemHackCFrameAPI: MemHackCFrameAPI
+    '23-Frame Types': '       Frame Types       '
         Comment
-    23-MemHackCLayerAPI: MemHackCLayerAPI
-    24-MemHackCLayoutFrameAPI: MemHackCLayoutFrameAPI
-    25-MemHackCBackDropFrameAPI: MemHackCBackDropFrameAPI
-    26-MemHackCEditBoxAPI: MemHackCEditBoxAPI
-    27-MemHackCModelFrameAPI: MemHackCModelFrameAPI
-    28-MemHackCSimpleButtonAPI: MemHackCSimpleButtonAPI
-    29-MemHackCSimpleFontAPI: MemHackCSimpleFontAPI
-    30-MemHackCSimpleGlueAPI: MemHackCSimpleGlueAPI
-    31-MemHackCSimpleFrameAPI: MemHackCSimpleFrameAPI
-    32-MemHackCSimpleConsoleAPI: MemHackCSimpleConsoleAPI
-    33-MemHackCSpriteFrameAPI: MemHackCSpriteFrameAPI
-    34-MemHackCSimpleMessageFrameAPI: MemHackCSimpleMessageFrameAPI
-    35-MemHackCSliderAPI: MemHackCSliderAPI
-    36-MemHackCTextAreaAPI: MemHackCTextAreaAPI
-    37-MemHackCTextFrameAPI: MemHackCTextFrameAPI
-    38-MemHackCSimpleStatusBarAPI: MemHackCSimpleStatusBarAPI
-    39-MemHackCStatusBarAPI: MemHackCStatusBarAPI
-    40-MemHackCSimpleTextureAPI: MemHackCSimpleTextureAPI
-    41-MemHackCSimpleRegionAPI: MemHackCSimpleRegionAPI
-    42-MemHackFrameAPI: MemHackFrameAPI
-    '43-----------UI API----------': '----------UI API----------'
+    24-MemHackCLayerAPI: MemHackCLayerAPI
+    25-MemHackCLayoutFrameAPI: MemHackCLayoutFrameAPI
+    26-MemHackCBackDropFrameAPI: MemHackCBackDropFrameAPI
+    27-MemHackCEditBoxAPI: MemHackCEditBoxAPI
+    28-MemHackCModelFrameAPI: MemHackCModelFrameAPI
+    29-MemHackCSimpleButtonAPI: MemHackCSimpleButtonAPI
+    30-MemHackCSimpleFontAPI: MemHackCSimpleFontAPI
+    31-MemHackCSimpleGlueAPI: MemHackCSimpleGlueAPI
+    32-MemHackCSimpleFrameAPI: MemHackCSimpleFrameAPI
+    33-MemHackCSimpleConsoleAPI: MemHackCSimpleConsoleAPI
+    34-MemHackCSpriteFrameAPI: MemHackCSpriteFrameAPI
+    35-MemHackCSimpleMessageFrameAPI: MemHackCSimpleMessageFrameAPI
+    36-MemHackCSliderAPI: MemHackCSliderAPI
+    37-MemHackCTextAreaAPI: MemHackCTextAreaAPI
+    38-MemHackCTextFrameAPI: MemHackCTextFrameAPI
+    39-MemHackCSimpleStatusBarAPI: MemHackCSimpleStatusBarAPI
+    40-MemHackCStatusBarAPI: MemHackCStatusBarAPI
+    41-MemHackCSimpleTextureAPI: MemHackCSimpleTextureAPI
+    42-MemHackCSimpleRegionAPI: MemHackCSimpleRegionAPI
+    43-MemHackFrameAPI: MemHackFrameAPI
+    '44-----------UI API----------': '----------UI API----------'
         Comment
-    44-MemHackUIAPI: MemHackUIAPI
-    45----------------------------: ---------------------------
+    45-MemHackUIAPI: MemHackUIAPI
+    46----------------------------: ---------------------------
         Comment
-    '46-----------CSprite API----------': '----------CSprite API----------'
+    '47-----------CSprite API----------': '----------CSprite API----------'
         Comment
-    47-MemHackCSpriteBaseAPI: MemHackCSpriteBaseAPI
-    48-MemHackCSpriteMiniAPI: MemHackCSpriteMiniAPI
-    49-MemHackCSpriteUberAPI: MemHackCSpriteUberAPI
-    '50-----------CObject API----------': '----------CObject API----------'
+    48-MemHackCSpriteBaseAPI: MemHackCSpriteBaseAPI
+    49-MemHackCSpriteMiniAPI: MemHackCSpriteMiniAPI
+    50-MemHackCSpriteUberAPI: MemHackCSpriteUberAPI
+    '51-----------CObject API----------': '----------CObject API----------'
         Comment
-    51-MemHackCObjectAPI: MemHackCObjectAPI
-    52----------------------------: ---------------------------
+    52-MemHackCObjectAPI: MemHackCObjectAPI
+    53----------------------------: ---------------------------
         Comment
-    '53-----------Player API----------': '----------Player API----------'
+    '54-----------Player API----------': '----------Player API----------'
         Comment
-    54-MemHackPlayerAPI: MemHackPlayerAPI
-    '55-----------Ability_Buff API----------': '----------Ability/Buff API----------'
+    55-MemHackPlayerAPI: MemHackPlayerAPI
+    '56-----------Ability_Buff API----------': '----------Ability/Buff API----------'
         Comment
-    56-MemHackAbilityAddressAPI: MemHackAbilityAddressAPI
-    57-MemHackAbilityBaseAPI: MemHackAbilityBaseAPI
-    58-MemHackAbilityNormalAPI: MemHackAbilityNormalAPI
-    59-MemHackAbilityUnitAPI: MemHackAbilityUnitAPI
-    60-MemHackCastAbility: MemHackCastAbility
-    61----------------------------: ---------------------------
+    57-MemHackAbilityAddressAPI: MemHackAbilityAddressAPI
+    58-MemHackAbilityBaseAPI: MemHackAbilityBaseAPI
+    59-MemHackAbilityNormalAPI: MemHackAbilityNormalAPI
+    60-MemHackAbilityUnitAPI: MemHackAbilityUnitAPI
+    61-MemHackCastAbility: MemHackCastAbility
+    62----------------------------: ---------------------------
         Comment
-    '62-----------Widget API----------': '----------Widget API----------'
+    '63-----------Widget API----------': '----------Widget API----------'
         Comment
-    63-MemHackWidgetBaseAPI: MemHackWidgetBaseAPI
-    64-MemHackWidgetNormalAPI: MemHackWidgetNormalAPI
-    65----------------------------: ---------------------------
+    64-MemHackWidgetBaseAPI: MemHackWidgetBaseAPI
+    65-MemHackWidgetNormalAPI: MemHackWidgetNormalAPI
+    66----------------------------: ---------------------------
         Comment
-    '66-----------Agent API----------': '----------Agent API----------'
+    '67-----------Agent API----------': '----------Agent API----------'
         Comment
-    67-MemHackEffectAPI: MemHackEffectAPI
-    68-MemHackTrackableAPI: MemHackTrackableAPI
-    69----------------------------: ---------------------------
+    68-MemHackEffectAPI: MemHackEffectAPI
+    69-MemHackTrackableAPI: MemHackTrackableAPI
+    70----------------------------: ---------------------------
         Comment
-    '70-----------Item API----------': '----------Item API----------'
+    '71-----------Item API----------': '----------Item API----------'
         Comment
-    71-MemHackItemBaseAPI: MemHackItemBaseAPI
-    72-MemHackItemNormalAPI: MemHackItemNormalAPI
-    73----------------------------: ---------------------------
+    72-MemHackItemBaseAPI: MemHackItemBaseAPI
+    73-MemHackItemNormalAPI: MemHackItemNormalAPI
+    74----------------------------: ---------------------------
         Comment
-    '74-----------Unit API----------': '----------Unit API----------'
+    '75-----------Unit API----------': '----------Unit API----------'
         Comment
-    75-MemHackUnitBaseAPI: MemHackUnitBaseAPI
-    76-MemHackUnitNormalAPI: MemHackUnitNormalAPI
-    77----------------------------: ---------------------------
+    76-MemHackUnitBaseAPI: MemHackUnitBaseAPI
+    77-MemHackUnitNormalAPI: MemHackUnitNormalAPI
+    78----------------------------: ---------------------------
         Comment
-    '78-----------Group API----------': '----------Group API----------'
+    '79-----------Group API----------': '----------Group API----------'
         Comment
-    79-MemHackGroupAPI: MemHackGroupAPI
-    80----------------------------: ---------------------------
+    80-MemHackGroupAPI: MemHackGroupAPI
+    81----------------------------: ---------------------------
         Comment
-    '81-----------Mouse API----------': '----------Mouse API----------'
+    '82-----------Mouse API----------': '----------Mouse API----------'
         Comment
-    82-MemHackMouseAPI: MemHackMouseAPI
-    83-----------Init----------: ----------Init----------
+    83-MemHackMouseAPI: MemHackMouseAPI
+    84-----------Init----------: ----------Init----------
         Comment
-    84-InitMemoryHack: InitMemoryHack
-    85-InitMainHook: InitMainHook
-    86----------------------------: ---------------------------
+    85-InitMemoryHack: InitMemoryHack
+    86-InitMainHook: InitMainHook
+    87----------------------------: ---------------------------
         Comment
 2-Misc_Examples: Misc/Examples
     1-TestHookedDamageEvent: TestHookedDamageEvent

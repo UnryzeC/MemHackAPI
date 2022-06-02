@@ -1,4 +1,4 @@
-//TESH.scrollpos=57
+//TESH.scrollpos=81
 //TESH.alwaysfold=0
 library APIMemoryFrameData
     function GetFrameType takes integer pFrame returns integer
@@ -40,10 +40,14 @@ library APIMemoryFrameData
     endfunction
 
     function GetFrameLayoutByType takes integer pFrame, integer fid returns integer
-        local boolean haslayout = LoadInteger( MemHackTable, StringHash( "FrameTypeTable" ), fid + 0x1000 ) != 0
+        local boolean haslayout = false
+        local string f_name1 = ""
 
         if fid != 0 then
-            if not haslayout then
+            set f_name1 = GetFrameTypeName( pFrame )
+            set haslayout = LoadInteger( MemHackTable, StringHash( "FrameTypeTable" ), fid + 0x1000 ) != 0 and f_name1 != "CHeroBar" and f_name1 != "CPeonBar" and f_name1 != "CUpperButtonBar" and f_name1 != "CResourceBar"
+
+            if not haslayout or ReadRealMemory( pFrame ) != LoadInteger( MemHackTable, StringHash( "FrameTypeTable" ), fid ) then
                 return pFrame
             else
                 return pFrame + 0xB4 // if 1.29+ 0xBC

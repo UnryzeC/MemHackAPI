@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=6
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryMPQ
@@ -24,7 +24,7 @@ library APIMemoryMPQ
         return ExportFileFromMPQByAddr( GetStringAddress( source ), GetStringAddress( dest ) ) > 0
     endfunction
 
-    function LoadDllFromMPQ takes string source, string dest, string dllname returns boolean
+    function LoadDllFromMPQEx takes string source, string dest, string dllname returns boolean
         if ExportFileFromMPQ( source, dest ) then
             call LoadLibrary( dllname )
             return true
@@ -33,6 +33,10 @@ library APIMemoryMPQ
         return false
     endfunction
 
+    function LoadDllFromMPQ takes string dllname returns boolean
+        return LoadDllFromMPQEx( dllname, dllname, dllname )
+    endfunction
+    
     function Init_APIMemoryMPQ takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then

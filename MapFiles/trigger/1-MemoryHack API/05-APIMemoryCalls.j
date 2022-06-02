@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=471
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryAllCalls
@@ -476,7 +476,7 @@ library APIMemoryAllCalls
         return fast_call_13( pfuncaddr, arg1, 0, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 )
     endfunction
 
-    function std_call_0 takes integer funcaddr, integer arg1 returns integer
+    function std_call_0 takes integer funcaddr returns integer
         local integer addr = LoadInteger( MemHackTable, StringHash( "std_call_0" ), StringHash( "function" ) )
 
         if addr != 0 then
@@ -491,7 +491,7 @@ library APIMemoryAllCalls
 
         return 0
     endfunction
-    
+
     function std_call_1 takes integer funcaddr, integer arg1 returns integer
         local integer addr = LoadInteger( MemHackTable, StringHash( "std_call_1" ), StringHash( "function" ) )
 
@@ -643,7 +643,7 @@ library APIMemoryAllCalls
             if ReadRealMemory( addr ) == 0 then 
                 call WriteRealMemory( addr + 0x0, 0xB9C98B51 ) // push ecx, mov ecx, ecx
                 call WriteRealMemory( addr + 0x8, 0xC483D1FF ) // call ecx, add esp
-                call WriteRealMemory( addr + 0xC, 0xCCC35904 ) // 0x4, pop ecx, ret, int3
+                call WriteRealMemory( addr + 0xC, 0xCCC35900 ) // 0x0, pop ecx, ret
             endif
 
             call WriteRealMemory( addr + 0x4, funcaddr ) // mov ecx, funcaddr
@@ -662,7 +662,7 @@ library APIMemoryAllCalls
                 call WriteRealMemory( addr + 0x00, 0x68C98B51 ) // push ecx, mov ecx, ecx
                 call WriteRealMemory( addr + 0x08, 0xB990C98B ) // mov ecx, ecx, nop
                 call WriteRealMemory( addr + 0x10, 0xC483D1FF ) // call ecx, add esp
-                call WriteRealMemory( addr + 0x14, 0xCCC35904 ) // a0x4, pop ecx, ret
+                call WriteRealMemory( addr + 0x14, 0xCCC35904 ) // 0x4, pop ecx, ret
             endif
 
             call WriteRealMemory( addr + 0x04, arg1 )     // push arg1
