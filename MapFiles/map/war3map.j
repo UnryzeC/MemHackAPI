@@ -93,6 +93,9 @@ constant boolean LIBRARY_APIMemoryMPQ=true
 //globals from APIMemoryRestorer:
 constant boolean LIBRARY_APIMemoryRestorer=true
 //endglobals from APIMemoryRestorer
+//globals from APIMemoryUtilityLibraryAPI:
+constant boolean LIBRARY_APIMemoryUtilityLibraryAPI=true
+//endglobals from APIMemoryUtilityLibraryAPI
 //globals from APIMemoryWC3GameUI:
 constant boolean LIBRARY_APIMemoryWC3GameUI=true
 integer pGameUI= 0
@@ -264,11 +267,11 @@ constant boolean LIBRARY_SystemDebug=true
 group gTemp= null
 unit uTemp= null
 effect eTemp= null
+item itTemp= null
 integer iTemp= 0
+trigger tTemp= null
         //hashtable htTemp = InitHashtable( )
         
-player pTemp= Player(0)
-
 boolean testout= true
 //endglobals from SystemDebug
 //globals from TestHookedDamageEvent:
@@ -291,10 +294,12 @@ trigger gg_trg_APIMemoryKernel= null
 trigger gg_trg_APIMemoryRestorer= null
 trigger gg_trg_APIMemoryStormDLL= null
 trigger gg_trg_APIMemoryMPQ= null
+trigger gg_trg_APIMemoryFrameData= null
 trigger gg_trg_APIMemoryGameData= null
 trigger gg_trg_APIMemoryGameUI= null
 trigger gg_trg_APIMemoryGameUIButton= null
 trigger gg_trg_APIMemoryGameWindow= null
+trigger gg_trg_APIMemoryUtilityLibraryAPI= null
 trigger gg_trg_MemHackConstantsAPI= null
 trigger gg_trg_MemHackCFrameAPI= null
 trigger gg_trg_MemHackCLayerAPI= null
@@ -347,7 +352,6 @@ trigger gg_trg_MemHackBerserkHook= null
 trigger gg_trg_MemHackCustomAbilityChargesHook= null
 trigger gg_trg_Testing= null
 trigger gg_trg_HandleAPI= null
-trigger gg_trg_APIMemoryFrameData= null
 
 
 //JASSHelper struct globals:
@@ -2190,7 +2194,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         return fast_call_13(pfuncaddr , arg1 , 0 , arg2 , arg3 , arg4 , arg5 , arg6 , arg7 , arg8 , arg9 , arg10 , arg11 , arg12)
     endfunction
 
-    function std_call_0 takes integer funcaddr,integer arg1 returns integer
+    function std_call_0 takes integer funcaddr returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("std_call_0"), StringHash("function"))
 
         if addr != 0 then
@@ -2205,7 +2209,7 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         return 0
     endfunction
-    
+
     function std_call_1 takes integer funcaddr,integer arg1 returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("std_call_1"), StringHash("function"))
 
@@ -2336,11 +2340,11 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call WriteRealMemory(addr + 0x38 , 0xC359D1FF) // call ecx, pop ecx, ret
             endif
 
-            call WriteRealMemory(addr + 0x04 , arg6) // push arg5
-            call WriteRealMemory(addr + 0x0C , arg5) // push arg4
-            call WriteRealMemory(addr + 0x14 , arg4) // push arg3
-            call WriteRealMemory(addr + 0x1C , arg3) // push arg2
-            call WriteRealMemory(addr + 0x24 , arg2) // push arg1
+            call WriteRealMemory(addr + 0x04 , arg6) // push arg6
+            call WriteRealMemory(addr + 0x0C , arg5) // push arg5
+            call WriteRealMemory(addr + 0x14 , arg4) // push arg4
+            call WriteRealMemory(addr + 0x1C , arg3) // push arg3
+            call WriteRealMemory(addr + 0x24 , arg2) // push arg2
             call WriteRealMemory(addr + 0x2C , arg1) // push arg1
             call WriteRealMemory(addr + 0x34 , funcaddr) // mov ecx, funcaddr
 
@@ -2350,6 +2354,37 @@ native IgnoredUnits takes integer unitid returns integer                        
         return 0
     endfunction
 
+    function std_call_7 takes integer funcaddr,integer arg1,integer arg2,integer arg3,integer arg4,integer arg5,integer arg6,integer arg7 returns integer
+        local integer addr= LoadInteger(MemHackTable, StringHash("std_call_7"), StringHash("function"))
+
+        if addr != 0 then
+            if ReadRealMemory(addr) == 0 then
+                call WriteRealMemory(addr + 0x00 , 0x68C98B51) // push ecx, mov ecx, ecx
+                call WriteRealMemory(addr + 0x08 , 0x6890C98B) // mov ecx, ecx
+                call WriteRealMemory(addr + 0x10 , 0x6890C98B) // mov ecx, ecx
+                call WriteRealMemory(addr + 0x18 , 0x6890C98B) // mov ecx, ecx
+                call WriteRealMemory(addr + 0x20 , 0x6890C98B) // mov ecx, ecx
+                call WriteRealMemory(addr + 0x28 , 0x6890C98B) // mov ecx, ecx, nop
+                call WriteRealMemory(addr + 0x30 , 0x6890C98B) // mov ecx, ecx, nop
+                call WriteRealMemory(addr + 0x38 , 0xB990C98B) // mov ecx, ecx, nop
+                call WriteRealMemory(addr + 0x40 , 0xC359D1FF) // call ecx, pop ecx, ret
+            endif
+
+            call WriteRealMemory(addr + 0x04 , arg7) // push arg7
+            call WriteRealMemory(addr + 0x0C , arg6) // push arg6
+            call WriteRealMemory(addr + 0x14 , arg5) // push arg5
+            call WriteRealMemory(addr + 0x1C , arg4) // push arg4
+            call WriteRealMemory(addr + 0x24 , arg3) // push arg3
+            call WriteRealMemory(addr + 0x2C , arg2) // push arg2
+            call WriteRealMemory(addr + 0x34 , arg1) // push arg1
+            call WriteRealMemory(addr + 0x3C , funcaddr) // mov ecx, funcaddr
+
+            return ExecuteBytecode(addr)
+        endif
+
+        return 0
+    endfunction
+    
     function c_call_0 takes integer funcaddr returns integer
         local integer addr= LoadInteger(MemHackTable, StringHash("c_call_0"), StringHash("function"))
 
@@ -2357,7 +2392,7 @@ native IgnoredUnits takes integer unitid returns integer                        
             if ReadRealMemory(addr) == 0 then
                 call WriteRealMemory(addr + 0x0 , 0xB9C98B51) // push ecx, mov ecx, ecx
                 call WriteRealMemory(addr + 0x8 , 0xC483D1FF) // call ecx, add esp
-                call WriteRealMemory(addr + 0xC , 0xCCC35904) // 0x4, pop ecx, ret, int3
+                call WriteRealMemory(addr + 0xC , 0xCCC35900) // 0x0, pop ecx, ret
             endif
 
             call WriteRealMemory(addr + 0x4 , funcaddr) // mov ecx, funcaddr
@@ -2376,7 +2411,7 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call WriteRealMemory(addr + 0x00 , 0x68C98B51) // push ecx, mov ecx, ecx
                 call WriteRealMemory(addr + 0x08 , 0xB990C98B) // mov ecx, ecx, nop
                 call WriteRealMemory(addr + 0x10 , 0xC483D1FF) // call ecx, add esp
-                call WriteRealMemory(addr + 0x14 , 0xCCC35904) // a0x4, pop ecx, ret
+                call WriteRealMemory(addr + 0x14 , 0xCCC35904) // 0x4, pop ecx, ret
             endif
 
             call WriteRealMemory(addr + 0x04 , arg1) // push arg1
@@ -2647,6 +2682,7 @@ native IgnoredUnits takes integer unitid returns integer                        
             call AllocFunctionCall("std_call_4" , 0x2C)
             call AllocFunctionCall("std_call_5" , 0x34)
             call AllocFunctionCall("std_call_6" , 0x3C)
+            call AllocFunctionCall("std_call_7" , 0x44)
 
             call AllocFunctionCall("c_call_0" , 0x10)
             call AllocFunctionCall("c_call_1" , 0x18)
@@ -2971,10 +3007,14 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function GetFrameLayoutByType takes integer pFrame,integer fid returns integer
-        local boolean haslayout= LoadInteger(MemHackTable, StringHash("FrameTypeTable"), fid + 0x1000) != 0
+        local boolean haslayout= false
+        local string f_name1= ""
 
         if fid != 0 then
-            if not haslayout then
+            set f_name1=GetFrameTypeName(pFrame)
+            set haslayout=LoadInteger(MemHackTable, StringHash("FrameTypeTable"), fid + 0x1000) != 0 and f_name1 != "CHeroBar" and f_name1 != "CPeonBar" and f_name1 != "CUpperButtonBar" and f_name1 != "CResourceBar"
+
+            if not haslayout or ReadRealMemory(pFrame) != LoadInteger(MemHackTable, StringHash("FrameTypeTable"), fid) then
                 return pFrame
             else
                 return pFrame + 0xB4 // if 1.29+ 0xBC
@@ -2999,16 +3039,19 @@ native IgnoredUnits takes integer unitid returns integer                        
     function AddFrameType takes string name,integer vtype,integer pVtable,integer pVTableObj returns nothing
         local integer hid= StringHash("FrameTypeTable")
 
-        call SaveStr(MemHackTable, hid, vtype, name)
-        call SaveInteger(MemHackTable, hid, vtype, pGameDLL + pVtable)
-        call SaveInteger(MemHackTable, hid, vtype + 0x1000, pGameDLL + pVTableObj)
+        if pVtable != 0 then
+            call SaveStr(MemHackTable, hid, vtype, name)
+            call SaveInteger(MemHackTable, hid, vtype, pGameDLL + pVtable)
 
-        call SaveStr(MemHackTable, hid, pGameDLL + pVtable, name)
-        call SaveInteger(MemHackTable, hid, pGameDLL + pVtable, vtype)
+            call SaveStr(MemHackTable, hid, pGameDLL + pVtable, name)
+            call SaveInteger(MemHackTable, hid, pGameDLL + pVtable, vtype)
 
-        if pVTableObj != 0 then
-            call SaveInteger(MemHackTable, hid, pGameDLL + pVTableObj, vtype)
-            call SaveStr(MemHackTable, hid, pGameDLL + pVTableObj, name)
+            if pVTableObj != 0 then
+                call SaveInteger(MemHackTable, hid, vtype + 0x1000, pGameDLL + pVTableObj)
+
+                call SaveInteger(MemHackTable, hid, pGameDLL + pVTableObj, vtype)
+                call SaveStr(MemHackTable, hid, pGameDLL + pVTableObj, name)
+            endif
         endif
     endfunction
     
@@ -3576,6 +3619,16 @@ native IgnoredUnits takes integer unitid returns integer                        
         return ReadRealMemory(pOff1 + 0x54)
     endfunction
 
+    function GetCAgentFromHashGroup takes integer pHash returns integer
+        local integer pData= 0
+
+        if pHash != 0 then
+            return GetCAgentFromHash(ReadRealMemory(pHash + 0x0) , ReadRealMemory(pHash + 0x4))
+        endif
+
+        return 0
+    endfunction
+    
     function GetCObjectFromHashGroup takes integer pHashGroup returns integer
         // Alternative to GetCObjectFromHash( ReadRealMemory( pHash + 0x0 ), ReadRealMemory( pHash + 0x4 ) )
         local integer addr= GetTempestThread()
@@ -3648,7 +3701,38 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         return - 1. // to ensure failure
     endfunction
-    
+
+    function GetSmartPositionAxis takes integer pSmartPos returns integer
+        local integer addr= LoadInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetSmartPositionAxis"))
+        local integer pvector2= 0
+        
+        if pSmartPos != 0 and addr != 0 then
+            set pvector2=LoadInteger(MemHackTable, StringHash("CustomData"), StringHash("Vector2"))
+            call this_call_2(addr , pSmartPos , pvector2)
+            return pvector2
+        endif
+
+        return 0
+    endfunction
+
+    function SetSmartPositionAxisEx takes integer pSmartPos,real x,real y,integer flag returns integer
+        local integer addr= LoadInteger(MemHackTable, StringHash("CGameWar3"), StringHash("SetSmartPositionAxis"))
+        local integer pvector2= 0
+        
+        if pSmartPos != 0 and addr != 0 then
+            set pvector2=LoadInteger(MemHackTable, StringHash("CustomData"), StringHash("Vector2"))
+            call WriteRealFloat(pvector2 + 0x0 , x)
+            call WriteRealFloat(pvector2 + 0x4 , y)
+            return this_call_3(addr , pSmartPos , pvector2 , flag)
+        endif
+
+        return 0
+    endfunction
+
+    function SetSmartPositionAxis takes integer pSmartPos,real x,real y returns integer
+        return SetSmartPositionAxisEx(pSmartPos , x , y , 1)
+    endfunction
+
     function Init_APIMemoryGameData takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
@@ -3665,6 +3749,8 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetAgentUIDef"), pGameDLL + 0x32D420)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("CUnitTojUnit"), pGameDLL + 0x2DD760)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetObjectFromHash"), pGameDLL + 0x040770)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetSmartPositionAxis"), pGameDLL + 0x474E00)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("SetSmartPositionAxis"), pGameDLL + 0x474D60)
         elseif PatchVersion == "1.26a" then
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GameState"), pGameDLL + 0xAB65F4)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("TempestThread"), pGameDLL + 0xAB7788)
@@ -3679,6 +3765,8 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetAgentUIDef"), pGameDLL + 0x32C8E0)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("CUnitTojUnit"), pGameDLL + 0x2DCC40)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetObjectFromHash"), pGameDLL + 0x03FA30)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetSmartPositionAxis"), pGameDLL + 0x4742F0)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("SetSmartPositionAxis"), pGameDLL + 0x474250)
         elseif PatchVersion == "1.27a" then
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GameState"), pGameDLL + 0xBE4238)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("TempestThread"), pGameDLL + 0xBE40A8)
@@ -3693,6 +3781,8 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetAgentUIDef"), pGameDLL + 0x322C30)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("CUnitTojUnit"), pGameDLL + 0x88F250)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetObjectFromHash"), pGameDLL + 0x037350)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetSmartPositionAxis"), pGameDLL + 0x03D790)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("SetSmartPositionAxis"), pGameDLL + 0x03F020)
         elseif PatchVersion == "1.27b" then
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GameState"), pGameDLL + 0xD687A8)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("TempestThread"), pGameDLL + 0xD68610)
@@ -3707,6 +3797,8 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetAgentUIDef"), pGameDLL + 0x340380)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("CUnitTojUnit"), pGameDLL + 0x9BA350)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetObjectFromHash"), pGameDLL + 0x054530)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetSmartPositionAxis"), pGameDLL + 0x058900)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("SetSmartPositionAxis"), pGameDLL + 0x05C200)
         elseif PatchVersion == "1.28f" then
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GameState"), pGameDLL + 0xD305E0)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("TempestThread"), pGameDLL + 0xD30448)
@@ -3721,10 +3813,13 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetAgentUIDef"), pGameDLL + 0x374340)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("CUnitTojUnit"), pGameDLL + 0x96F2E0)
                 call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetObjectFromHash"), pGameDLL + 0x07E090)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("GetSmartPositionAxis"), pGameDLL + 0x0844D0)
+                call SaveInteger(MemHackTable, StringHash("CGameWar3"), StringHash("SetSmartPositionAxis"), pGameDLL + 0x085D70)
             endif
 
             call SaveInteger(MemHackTable, StringHash("CustomData"), StringHash("Vector2"), Malloc(0x8))
             call SaveInteger(MemHackTable, StringHash("CustomData"), StringHash("Vector3"), Malloc(0xC))
+            call SaveInteger(MemHackTable, StringHash("CustomData"), StringHash("Matrix3x3"), Malloc(0x24))
         endif
     endfunction
 
@@ -3871,6 +3966,40 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         return 0
     endfunction
+    
+    function CreateDirectory takes string directorypath,integer securityAttributes returns integer
+        local integer addr= GetFuncFromDll("Kernel32.dll" , "CreateDirectoryA" , true)
+        
+        if addr != 0 then
+            return std_call_2(addr , GetStringAddress(directorypath) , securityAttributes)
+        endif
+        
+        return 0
+    endfunction
+
+    function CreateFile takes string filename,integer accessType,integer shareMode,integer securityAttributes,integer creationDisposition,integer flags,integer templateFile returns integer
+        local integer addr= GetFuncFromDll("Kernel32.dll" , "CreateFileA" , true)
+
+        if addr != 0 then
+            // explanations here: https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+            return std_call_7(addr , GetStringAddress(filename) , accessType , shareMode , securityAttributes , creationDisposition , flags , templateFile)
+        endif
+
+        return 0
+    endfunction
+    
+    function CreateFileSimple takes string filename returns integer
+        return CreateFile(filename , 0xC0000000 , 0x00000002 , 0 , 0x1 , 0x80 , 0)
+    endfunction
+    
+    function CloseHandle takes integer hHandle returns nothing
+        local integer addr= GetFuncFromDll("Kernel32.dll" , "CloseHandle" , true)
+
+        if addr != 0 and hHandle != 0 then
+            // explanations here: https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+            call std_call_1(addr , hHandle)
+        endif
+    endfunction
 
     function ReadStringFromFile takes string sfile,string ssection,string skey,string sdefval returns string
         local integer addr= GetFuncFromDll("Kernel32.dll" , "GetPrivateProfileStringA" , true)
@@ -3913,6 +4042,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         return 0
     endfunction
 
+    // Window API
     function MessageBox takes string message,string caption returns nothing
         local integer addr= GetFuncFromDll("User32.dll" , "MessageBoxA" , true)
 
@@ -3969,6 +4099,26 @@ native IgnoredUnits takes integer unitid returns integer                        
         endif
 
         return FindWindowExByAddr(hwid1 , hwid2 , c_addr , w_addr)
+    endfunction
+
+    function GetActiveWindow takes nothing returns integer
+        local integer addr= GetFuncFromDll("User32.dll" , "GetActiveWindow" , true)
+        
+        if addr != 0 then
+            return std_call_0(addr)
+        endif
+
+        return 0
+    endfunction
+
+    function GetForegroundWindow takes nothing returns integer
+        local integer addr= GetFuncFromDll("User32.dll" , "GetForegroundWindow" , true)
+
+        if addr != 0 then
+            return std_call_0(addr)
+        endif
+
+        return 0
     endfunction
 
     function GetWindowClassName takes integer hwid returns string
@@ -4073,6 +4223,18 @@ native IgnoredUnits takes integer unitid returns integer                        
         return 0
     endfunction
 
+    function PostMessage takes integer hwnd,integer msg,integer wparam,integer lparam returns nothing
+        local integer addr= GetFuncFromDll("User32.dll" , "PostMessageA" , true)
+
+        if addr != 0 then
+            call std_call_4(addr , hwnd , msg , wparam , lparam)
+        endif
+
+        //call PostMessage( pHWND_WC3, 0x0100, 0x0D, 0 )
+        //call PostMessage( pHWND_WC3, 0x0101, 0x0D, 0 )
+    endfunction
+    //
+
     function GetCursorPos takes nothing returns integer
         local integer addr= GetFuncFromDll("User32.dll" , "GetCursorPos" , true)
         local integer mem= 0
@@ -4097,17 +4259,6 @@ native IgnoredUnits takes integer unitid returns integer                        
         endif
 
         return 0
-    endfunction
-
-    function PostMessage takes integer hwnd,integer msg,integer wparam,integer lparam returns nothing
-        local integer addr= GetFuncFromDll("User32.dll" , "PostMessageA" , true)
-
-        if addr != 0 then
-            call std_call_4(addr , hwnd , msg , wparam , lparam)
-        endif
-
-        //call PostMessage( pHWND_WC3, 0x0100, 0x0D, 0 )
-        //call PostMessage( pHWND_WC3, 0x0101, 0x0D, 0 )
     endfunction
 
     function ShellExecute takes string command,string path,string args returns nothing
@@ -4186,7 +4337,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         return ExportFileFromMPQByAddr(GetStringAddress(source) , GetStringAddress(dest)) > 0
     endfunction
 
-    function LoadDllFromMPQ takes string source,string dest,string dllname returns boolean
+    function LoadDllFromMPQEx takes string source,string dest,string dllname returns boolean
         if ExportFileFromMPQ(source , dest) then
             call LoadLibrary(dllname)
             return true
@@ -4195,6 +4346,10 @@ native IgnoredUnits takes integer unitid returns integer                        
         return false
     endfunction
 
+    function LoadDllFromMPQ takes string dllname returns boolean
+        return LoadDllFromMPQEx(dllname , dllname , dllname)
+    endfunction
+    
     function Init_APIMemoryMPQ takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
@@ -4384,6 +4539,44 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
 //library APIMemoryRestorer ends
+//library APIMemoryUtilityLibraryAPI:
+    function GetUtilityLibraryHashtable takes nothing returns hashtable
+        return LoadHashtableHandle(MemHackTable, StringHash("UtilityLibrary.dll"), StringHash("HashTable"))
+    endfunction
+
+    function InitHashtableListener takes hashtable ht returns boolean
+        local integer addr= GetFuncFromDll("UtilityLibrary.dll" , "InitHashtableListener" , true)
+
+        if addr != 0 and ht != null then
+            call c_call_1(addr , GetHandleId(ht))
+            return true
+        endif
+
+        return false
+    endfunction
+
+    function RemoveHashtableListeners takes nothing returns boolean
+        local integer addr= GetFuncFromDll("UtilityLibrary.dll" , "RemoveHashtableListeners" , true)
+
+        if addr != 0 then
+            call c_call_0(addr)
+            return true
+        endif
+
+        return false
+    endfunction
+    
+    function Init_APIMemoryUtilityLibraryAPI takes nothing returns nothing
+        if PatchVersion != "" then
+            if LoadDllFromMPQ("UtilityLibrary.dll") then
+                call SaveHashtableHandle(MemHackTable, StringHash("UtilityLibrary.dll"), StringHash("HashTable"), InitHashtable())
+                // call SaveInteger( MemHackTable, StringHash( "UtilityLibrary.dll" ), StringHash( "Module" ), GetModuleHandle( "UtilityLibrary.dll" ) )
+                call InitHashtableListener(GetUtilityLibraryHashtable())
+            endif
+        endif
+    endfunction
+
+//library APIMemoryUtilityLibraryAPI ends
 //library APIMemoryWC3GameUI:
 
     function GetGameUI takes integer bInit,integer bRelease returns integer
@@ -5119,6 +5312,14 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function GetAddressAbilityTypeId takes integer pAbil returns integer
+        if pAbil != 0 then
+            return ReadRealMemory(pAbil + 0x34)
+        endif
+
+        return 0
+    endfunction
+    
+    function GetAddressAbilityBaseTypeId takes integer pAbil returns integer
         local integer base= 0
 
         if pAbil > 0 then
@@ -6226,14 +6427,8 @@ native IgnoredUnits takes integer unitid returns integer                        
     //===========================================
     
     // Base Ability Data/UI Data API
-    function GetAbilityTypeId takes ability abil returns integer
-        local integer pAbil= ConvertHandle(abil)
-
-        if pAbil != 0 then
-            return GetAddressAbilityTypeId(pAbil)
-        endif
-
-        return 0
+    function GetAbilityTypeId takes ability a returns integer
+        return GetAddressAbilityTypeId(ConvertHandle(a))
     endfunction
 
     function GetAbilityBaseId takes ability abil returns integer
@@ -6845,7 +7040,31 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         return 0
     endfunction
-    
+
+    function GetUnitAbilityByIndex takes unit u,integer index returns ability
+        local integer pData= ConvertHandle(u)
+        local integer pAbil= 0
+        local integer i= 0
+
+        if pData != 0 then
+            set pAbil=GetCAgentFromHashGroup(pData + 0x1DC)
+
+            if pAbil != 0 then
+                loop
+                    exitwhen pAbil == 0 or i == index
+                    set pAbil=GetCAgentFromHashGroup(pAbil + 0x24)
+                    set i=i + 1
+                endloop
+
+                if pAbil != 0 then
+                    return ObjectToAbility(pAbil)
+                endif
+            endif
+        endif
+
+        return null
+    endfunction
+
     function GetUnitJAbility takes unit u,integer aid returns ability
         return ObjectToAbility(GetUnitAbility(u , aid))
     endfunction
@@ -8611,13 +8830,17 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         return false
     endfunction
-    
-    function IsCLayerVisible takes integer pFrame returns boolean
+
+    function IsCLayerHidden takes integer pFrame returns boolean
         if pFrame != 0 then
-            return I2B(ReadRealMemory(pFrame + 0xB0))
+            return IsFlagBitSet(ReadRealMemory(pFrame + 0xB0) , 0x1)
         endif
 
         return false
+    endfunction
+
+    function IsCLayerVisible takes integer pFrame returns boolean
+        return not IsCLayerHidden(pFrame)
     endfunction
 
     function SetCLayerPriority takes integer pFrame,integer priority returns boolean
@@ -8671,8 +8894,8 @@ native IgnoredUnits takes integer unitid returns integer                        
 
             if fid > 0 then
                 if pTooltip > 0 then
-                    call WriteRealMemory(pFrame + 0x230 , 1)
-                    call this_call_2(addr , pTooltip + 0xB4 , 1) //if 1.29+ then 0xBC
+                    //call WriteRealMemory( pFrame + 0x230, 1 )
+                    //call this_call_2( addr, pTooltip + 0xB4, 1 ) //if 1.29+ then 0xBC
                 endif
                 
                 set addr=LoadInteger(MemHackTable, StringHash("CLayer"), StringHash("SetTooltip"))
@@ -8843,7 +9066,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer addr= LoadInteger(MemHackTable, StringHash("CLayoutFrame"), StringHash("SetRelativePoint"))
 
         if addr != 0 and pFrame != 0 and pParentFrame != 0 then
-            return B2I(this_call_7(addr , pFrame , point , pParentFrame , relativePoint , SetRealIntoMemory(x) , SetRealIntoMemory(y) , 1) > 0)
+            call this_call_7(addr , pFrame , point , pParentFrame , relativePoint , SetRealIntoMemory(x) , SetRealIntoMemory(y) , 1)
+            return 1
         endif
 
         return 0
@@ -9185,7 +9409,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         call SetSpriteBaseAnimationByIndexWithRarity(GetObjectSprite(pObject) , index , rarity)
     endfunction
     
-    function SetObjectModel takes integer pObject,string model returns nothing
+    function SetObjectModel takes integer pObject,string model,boolean flag returns nothing
         // Works on every handle, even items.
         local integer pData= 0
 
@@ -9196,7 +9420,7 @@ native IgnoredUnits takes integer unitid returns integer                        
                 set pData=ReadRealMemory(pData)
 
                 if pData > 0 then
-                    call this_call_3(pData , pObject , GetStringAddress(model) , 1)
+                    call this_call_3(pData , pObject , GetStringAddress(model) , B2I(flag))
                 endif
             endif
         endif
@@ -9207,7 +9431,14 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetObjectX takes integer pObject,real x returns nothing
-        call SetObjectSpriteFloat(pObject , 0xC0 , x)
+        local integer pSprite= GetObjectSprite(pObject)
+        local integer pSmartPos= 0
+
+        if pSprite != 0 then
+            set pSmartPos=this_call_1(ReadRealMemory(ReadRealMemory(pObject) + 0xB0) , pObject)
+            call SetSmartPositionAxisEx(pSmartPos , x , ReadRealFloat(pSprite + 0xC4) , 1)
+            call WriteRealFloat(pSprite + 0xC0 , x)
+        endif
     endfunction
 
     function GetObjectY takes integer pObject returns real
@@ -9215,7 +9446,14 @@ native IgnoredUnits takes integer unitid returns integer                        
     endfunction
 
     function SetObjectY takes integer pObject,real y returns nothing
-        call SetObjectSpriteFloat(pObject , 0xC4 , y)
+        local integer pSprite= GetObjectSprite(pObject)
+        local integer pSmartPos= 0
+
+        if pSprite != 0 then
+            set pSmartPos=this_call_1(ReadRealMemory(ReadRealMemory(pObject) + 0xB0) , pObject)
+            call SetSmartPositionAxisEx(pSmartPos , ReadRealFloat(pSprite + 0xC0) , y , 1)
+            call WriteRealFloat(pSprite + 0xC4 , y)
+        endif
     endfunction
 
     function GetObjectZ takes integer pObject returns real
@@ -9228,8 +9466,11 @@ native IgnoredUnits takes integer unitid returns integer                        
 
     function SetObjectPosition takes integer pObject,real x,real y,real z returns nothing
         local integer pSprite= GetObjectSprite(pObject)
+        local integer pSmartPos= 0
 
         if pSprite != 0 then
+            set pSmartPos=this_call_1(ReadRealMemory(ReadRealMemory(pObject) + 0xB0) , pObject)
+            call SetSmartPositionAxisEx(pSmartPos , x , y , 1)
             call WriteRealFloat(pSprite + 0xC0 , x)
             call WriteRealFloat(pSprite + 0xC4 , y)
             call WriteRealFloat(pSprite + 0xC8 , z)
@@ -9532,28 +9773,63 @@ native IgnoredUnits takes integer unitid returns integer                        
         return false
     endfunction
 
+    function ClickCSimpleButton takes integer pButton,integer buttonType returns integer
+        // 0x1 = LButton | 0x4 = RButton
+        local integer addr= LoadInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Click"))
+
+        if addr != 0 and pButton != 0 then
+            return this_call_2(addr , pButton , buttonType)
+        endif
+
+        return 0
+    endfunction
+
+    function ClickCSimpleButtonEx takes integer pButton,integer buttonType returns boolean
+        // 0x1 = LButton | 0x4 = RButton
+        local integer oldflag= 0
+        local integer retval= 0
+
+        if pButton != 0 then
+            set oldflag=ReadRealMemory(pButton + 0x138)
+
+            if not IsFlagBitSet(oldflag , 0x2) then
+                call WriteRealMemory(pButton + 0x138 , BitwiseXor(oldflag , 0x2))
+            endif
+
+            set retval=ClickCSimpleButton(pButton , buttonType)
+            call WriteRealMemory(pButton + 0x138 , oldflag)
+        endif
+
+        return retval != 0
+    endfunction
+    
     function Init_MemHackCSimpleButtonAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Create"), pGameDLL + 0x603880)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetState"), pGameDLL + 0x603780)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetStateTexture"), pGameDLL + 0x6039C0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Click"), pGameDLL + 0x603BE0)
         elseif PatchVersion == "1.26a" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Create"), pGameDLL + 0x6030E0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetState"), pGameDLL + 0x602FE0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetStateTexture"), pGameDLL + 0x603220)
+                call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Click"), pGameDLL + 0x603440)
         elseif PatchVersion == "1.27a" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Create"), pGameDLL + 0x0BB2A0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetState"), pGameDLL + 0x0BB4E0)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetStateTexture"), pGameDLL + 0x0BBA40)
+                call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Click"), pGameDLL + 0x0BB560)
         elseif PatchVersion == "1.27b" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Create"), pGameDLL + 0x3A1620)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetState"), pGameDLL + 0x10F240)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetStateTexture"), pGameDLL + 0x10F7A0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Click"), pGameDLL + 0x10F2C0)
         elseif PatchVersion == "1.28f" then
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Create"), pGameDLL + 0x3D5730)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetState"), pGameDLL + 0x13D770)
                 call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("SetStateTexture"), pGameDLL + 0x13DCD0)
+                call SaveInteger(MemHackTable, StringHash("CSimpleButton"), StringHash("Click"), pGameDLL + 0x13D7F0)
             endif
         endif
     endfunction
@@ -10978,7 +11254,7 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackCastAbility ends
 //library MemoryHackConstantsAPI:
     function IsOPLimitRemoved takes nothing returns boolean
-        local integer addr= LoadInteger(MemHackTable, StringHash("OPLimit"), StringHash("GetData"))
+        local integer addr= LoadInteger(MemHackTable, StringHash("OPLimit"), StringHash("Addr1"))
 
         if addr != 0 then
             return ReadRealMemory(addr) == 0x6A570FFF // 6A570004
@@ -10996,7 +11272,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         if addr != 0 then
             if oldvalue == 0 then
                 set oldvalue=ReadRealMemory(addr)
-                call SaveInteger(MemHackTable, StringHash("OPLimit"), StringHash("Value" + I2S(id)), ReadRealMemory(addr))
+                call SaveInteger(MemHackTable, StringHash("OPLimit"), StringHash("Value" + I2S(id)), oldvalue)
             endif
 
             if oldvalue != 0 then
@@ -11019,12 +11295,11 @@ native IgnoredUnits takes integer unitid returns integer                        
 
         loop
             exitwhen i > 9
-            call SaveInteger(MemHackTable, StringHash("OPLimit"), StringHash("Value" + I2S(i)), 0x0)
             call EnableOPLimitEx(flag , i)
             set i=i + 1
         endloop
     endfunction
-    
+
     function Init_MemHackConstantsAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
@@ -11226,12 +11501,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         call SetObjectColourB(ConvertHandle(e) , blue)
     endfunction
 
-    function SetEffectAnimationByIndex takes effect e,integer index returns nothing
-        call SetObjectAnimationByIndex(ConvertHandle(e) , index)
-    endfunction
-
-    function SetEffectModel takes effect e,string model returns nothing
-        call SetObjectModel(ConvertHandle(e) , model)
+    function SetEffectModel takes effect e,string model,boolean flag returns nothing
+        call SetObjectModel(ConvertHandle(e) , model , flag)
     endfunction
 
     function GetEffectX takes effect e returns real
@@ -11326,6 +11597,14 @@ native IgnoredUnits takes integer unitid returns integer                        
         call ResetObjectMatrix(ConvertHandle(e))
     endfunction
 
+    function SetEffectAnimationByIndex takes effect e,integer index returns nothing
+        call SetObjectAnimationByIndex(ConvertHandle(e) , index)
+    endfunction
+
+    function SetEffectAnimationByIndexWithRarity takes effect e,integer index,integer rarity returns nothing
+        call SetObjectAnimationByIndexWithRarity(ConvertHandle(e) , index , rarity)
+    endfunction
+    
     function Init_MemHackEffectAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
@@ -11529,15 +11808,36 @@ native IgnoredUnits takes integer unitid returns integer                        
     function FindLayerUnderCursor takes nothing returns integer
         return FindCLayerUnderCursor()
     endfunction
-
-    function ClickFrame takes integer pFrame returns integer
-        local integer addr= LoadInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickFrame"))
+    
+    function ClickCControl takes integer pFrame,integer buttonType returns integer
+        local integer addr= LoadInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickCControl"))
 
         if addr != 0 and pFrame != 0 then
-            return this_call_2(addr , pFrame , 1)
+            return this_call_2(addr , pFrame , buttonType)
         endif
 
         return 0
+    endfunction
+
+    function ClickFrameEx takes integer pFrame,integer buttonType returns integer
+        // LButton = 0x1 | RButton = 0x4
+        local string f_name= ""
+
+        if pFrame != 0 then
+            set f_name=GetFrameTypeName(pFrame)
+        
+            if f_name != "CSimpleButton" and f_name != "CCommandButton" then
+                return ClickCControl(pFrame , buttonType)
+            else
+                return ClickCSimpleButton(pFrame , buttonType)
+            endif
+        endif
+
+        return 0
+    endfunction
+    
+    function ClickFrame takes integer pFrame returns integer
+        return ClickFrameEx(pFrame , 1)
     endfunction
 
     function SetFrameModel takes integer pFrame,string model,integer modeltype,boolean flag returns integer
@@ -11999,35 +12299,35 @@ native IgnoredUnits takes integer unitid returns integer                        
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetSkinByName"), pGameDLL + 0x320070)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("DestroyFrame"), pGameDLL + 0x6070B0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("SetFrameState"), pGameDLL + 0x602580)
-                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickFrame"), pGameDLL + 0x6026C0)
+                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickCControl"), pGameDLL + 0x6026C0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("UpdateFrame"), pGameDLL + 0x606460)
         elseif PatchVersion == "1.26a" then
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetTooltipFrame"), pGameDLL + 0x337240)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetSkinByName"), pGameDLL + 0x31F530)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("DestroyFrame"), pGameDLL + 0x606910)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("SetFrameState"), pGameDLL + 0x336C20)
-                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickFrame"), pGameDLL + 0x601F20)
+                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickCControl"), pGameDLL + 0x601F20)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("UpdateFrame"), pGameDLL + 0x605CC0)
         elseif PatchVersion == "1.27a" then
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetTooltipFrame"), pGameDLL + 0x399720)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetSkinByName"), pGameDLL + 0x324AD0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("DestroyFrame"), pGameDLL + 0x0A1870)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("SetFrameState"), pGameDLL + 0x0A95F0)
-                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickFrame"), pGameDLL + 0x0BE3A0)
+                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickCControl"), pGameDLL + 0x0BE3A0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("UpdateFrame"), pGameDLL + 0x0BD630)
         elseif PatchVersion == "1.27b" then
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetTooltipFrame"), pGameDLL + 0x3B6ED0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetSkinByName"), pGameDLL + 0x342220)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("DestroyFrame"), pGameDLL + 0x0F55D0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("SetFrameState"), pGameDLL + 0x112030)
-                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickFrame"), pGameDLL + 0x112100)
+                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickCControl"), pGameDLL + 0x112100)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("UpdateFrame"), pGameDLL + 0x111390)
         elseif PatchVersion == "1.28f" then
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetTooltipFrame"), pGameDLL + 0x3EAFC0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("GetSkinByName"), pGameDLL + 0x3761E0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("DestroyFrame"), pGameDLL + 0x123C20)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("SetFrameState"), pGameDLL + 0x1406E0)
-                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickFrame"), pGameDLL + 0x1407B0)
+                call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("ClickCControl"), pGameDLL + 0x1407B0)
                 call SaveInteger(MemHackTable, StringHash("FrameAPI"), StringHash("UpdateFrame"), pGameDLL + 0x13F9B0)
             endif
 
@@ -12448,6 +12748,22 @@ native IgnoredUnits takes integer unitid returns integer                        
 
 //library MemoryHackItemBaseAPI ends
 //library MemoryHackItemNormalAPI:
+    function CItemGetAbilityByIndex takes integer pItem,integer index returns ability
+        local integer pData= pItem
+        local integer pAbil= 0
+        local integer i= 0
+
+        if pData != 0 then
+            set pAbil=GetCAgentFromHashGroup(pData + 0x9C + 0x8 * index)
+
+            if pAbil != 0 then
+                return ObjectToAbility(pAbil)
+            endif
+        endif
+
+        return null
+    endfunction
+
     function CItemStartCooldown takes integer pUnit,integer pItem,real cd returns nothing
         local integer addr= LoadInteger(MemHackTable, StringHash("CItem"), StringHash("StatCooldown"))
         local integer mem= LoadInteger(MemHackTable, StringHash("PointerArray"), 0)
@@ -12475,8 +12791,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         endif
     endfunction
     
-    function CItemSetModel takes integer pItem,string model returns nothing
-        call SetObjectModel(pItem , model)
+    function CItemSetModel takes integer pItem,string model,boolean flag returns nothing
+        call SetObjectModel(pItem , model , flag)
     endfunction
     
     function CItemGetLife takes integer pItem returns real
@@ -12506,7 +12822,13 @@ native IgnoredUnits takes integer unitid returns integer                        
             call WriteRealMemory(pItem + 0x60 , SetRealIntoMemory(life))
         endif
     endfunction
-
+    //
+    
+    // jitem API
+    function GetItemAbilityByIndex takes item it,integer index returns ability
+        return CItemGetAbilityByIndex(ConvertHandle(it) , index)
+    endfunction
+    
     function StartItemCooldown takes unit u,item it,real cd returns nothing
         call CItemStartCooldown(ConvertHandle(u) , ConvertHandle(it) , cd)
     endfunction
@@ -12515,8 +12837,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         call CItemSetTypeId(ConvertHandle(it) , id)
     endfunction
     
-    function SetItemModel takes item it,string model returns nothing
-        call CItemSetModel(ConvertHandle(it) , model)
+    function SetItemModel takes item it,string model,boolean flag returns nothing
+        call CItemSetModel(ConvertHandle(it) , model , flag)
     endfunction
     
     function GetItemLife takes item it returns real
@@ -13073,8 +13395,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         call SetObjectAnimationByIndex(ConvertHandle(track) , index)
     endfunction
     
-    function SetTrackableModel takes trackable track,string model returns nothing
-        call SetObjectModel(ConvertHandle(track) , model)
+    function SetTrackableModel takes trackable track,string model,boolean flag returns nothing
+        call SetObjectModel(ConvertHandle(track) , model , flag)
     endfunction
 
     function GetTrackableX takes trackable track returns real
@@ -13184,19 +13506,8 @@ native IgnoredUnits takes integer unitid returns integer                        
 //library MemoryHackUIAPI:
 
     function SetUIFramePoint takes integer pFrame,integer point,integer pParentFrame,integer relativePoint,real x,real y returns integer
-        local integer fid_1= GetFrameType(pFrame)
-        local integer fid_2= GetFrameType(pParentFrame)
-
-        if fid_1 > 0 and fid_2 > 0 then
-            if fid_1 != 9 then
-                set pFrame=GetFrameLayoutByType(pFrame , fid_1)
-            endif
-
-            if fid_2 != 9 then
-                set pParentFrame=GetFrameLayoutByType(pParentFrame , fid_2)
-            endif
-
-            return SetCLayoutFramePoint(pFrame , point , pParentFrame , relativePoint , x , y)
+        if pFrame != 0 and pParentFrame != 0 then
+            return SetCLayoutFramePoint(GetFrameLayoutByType(pFrame , GetFrameType(pFrame)) , point , GetFrameLayoutByType(pParentFrame , GetFrameType(pParentFrame)) , relativePoint , x , y)
         endif
 
         return 0
@@ -13205,9 +13516,9 @@ native IgnoredUnits takes integer unitid returns integer                        
     function HideUI takes nothing returns nothing
         local integer pRootFrame= GetRootFrame()
 
-        if pRootFrame > 0 then
-            call SetUIFramePoint(GetUIUpperButtonBarFrame() , ANCHOR_TOPLEFT , pRootFrame , ANCHOR_TOPLEFT , 0.0 , 1.0)
-            call SetUIFramePoint(GetUIResourceBarFrame() , ANCHOR_TOPRIGHT , pRootFrame , ANCHOR_TOPRIGHT , 0.0 , 1.0)
+        if pRootFrame != 0 then
+            call SetUIFramePoint(GetUIUpperButtonBarFrame() , ANCHOR_TOPLEFT , pRootFrame , ANCHOR_TOPLEFT , 0.0 , 1.0) // crash
+            call SetUIFramePoint(GetUIResourceBarFrame() , ANCHOR_TOPRIGHT , pRootFrame , ANCHOR_TOPRIGHT , 0.0 , 1.0) // crash
 
             call SetUIFramePoint(GetUISimpleConsole() , ANCHOR_TOPLEFT , pRootFrame , ANCHOR_TOPLEFT , 10.0 , 0.0)
             call SetUIFramePoint(GetUISimpleConsole() , ANCHOR_TOPRIGHT , pRootFrame , ANCHOR_TOPRIGHT , - 10.0 , 0.0)
@@ -13215,8 +13526,8 @@ native IgnoredUnits takes integer unitid returns integer                        
             call SetUIFramePoint(GetUIPortrait() , ANCHOR_BOTTOMLEFT , pRootFrame , ANCHOR_BOTTOMLEFT , 1.0 , 1.0)
             call SetUIFramePoint(GetUIMinimap() , ANCHOR_BOTTOMLEFT , pRootFrame , ANCHOR_BOTTOMLEFT , 1.0 , 1.0)
 
-            call SetUIFramePoint(GetUIPeonBar() , ANCHOR_BOTTOMLEFT , pRootFrame , ANCHOR_BOTTOMLEFT , 1.0 , 1.0)
-            call SetUIFramePoint(GetUIHeroBar() , ANCHOR_TOPLEFT , pRootFrame , ANCHOR_TOPLEFT , 0.0 , 1.0)
+            call SetUIFramePoint(GetUIPeonBar() , ANCHOR_BOTTOMLEFT , pRootFrame , ANCHOR_BOTTOMLEFT , 1.0 , 1.0) // crash
+            call SetUIFramePoint(GetUIHeroBar() , ANCHOR_TOPLEFT , pRootFrame , ANCHOR_TOPLEFT , 0.0 , 1.0) // crash
 
             call SetUIFramePoint(GetUITimeOfDayIndicator() , ANCHOR_BOTTOMLEFT , pRootFrame , ANCHOR_BOTTOMLEFT , 1.0 , 1.0)
             call SetUIFramePoint(ReadRealMemory(GetUITimeOfDayIndicator() + 0x1B0) , ANCHOR_TOP , pRootFrame , ANCHOR_TOP , 1.0 , 0.0) // TimeOfDayIndicator UBERTIP
@@ -13228,7 +13539,7 @@ native IgnoredUnits takes integer unitid returns integer                        
     function ShowUI takes nothing returns nothing
         local integer pRootFrame= GetRootFrame()
 
-        if pRootFrame > 0 then
+        if pRootFrame != 0 then
             call SetUIFramePoint(GetUIUpperButtonBarFrame() , ANCHOR_TOPLEFT , pRootFrame , ANCHOR_TOPLEFT , 0.0 , 0.0)
             call SetUIFramePoint(GetUIResourceBarFrame() , ANCHOR_TOPRIGHT , pRootFrame , ANCHOR_TOPRIGHT , 0.0 , 0.0)
 
@@ -13252,7 +13563,7 @@ native IgnoredUnits takes integer unitid returns integer                        
         local integer pRootFrame= GetRootFrame()
         local integer l__pWorldFrameWar3= GetUIWorldFrameWar3()
 
-        if pRootFrame > 0 then
+        if pRootFrame != 0 then
             call SetUIFramePoint(l__pWorldFrameWar3 , ANCHOR_TOPRIGHT , pRootFrame , ANCHOR_TOPRIGHT , topX , topY)
             call SetUIFramePoint(l__pWorldFrameWar3 , ANCHOR_BOTTOMLEFT , pRootFrame , ANCHOR_BOTTOMLEFT , botX , botY)
         endif
@@ -14235,8 +14546,8 @@ native IgnoredUnits takes integer unitid returns integer                        
         return GetByteFromInteger(GetUnitVertexColour(u) , 4)
     endfunction
 
-    function SetUnitModel takes unit u,string model returns nothing
-        call SetObjectModel(ConvertHandle(u) , model)
+    function SetUnitModel takes unit u,string model,boolean flag returns nothing
+        call SetObjectModel(ConvertHandle(u) , model , flag)
     endfunction
 
     function SetUnitTexture takes unit u,string texturepath,integer textureId returns integer
@@ -15714,6 +16025,10 @@ function PrintMemHackData takes nothing returns nothing
     call BJDebugMsg("pJassHandleTable: " + IntToHex(GetJassTable()))
 endfunction
 
+function SomeFunction takes nothing returns nothing
+    
+endfunction
+
 function TestBenchmarking takes nothing returns nothing
     local integer p= 0
     local integer i= 0
@@ -15721,9 +16036,13 @@ function TestBenchmarking takes nothing returns nothing
     local real r= 0.
     local integer time1= 0
     local integer time2= 0
+    local integer sum= 0
 
     set i=0
     set time1=GetLocalTime(0)
+    
+    
+    
     loop
         exitwhen i == 10000
         // Some stuff here
@@ -15742,37 +16061,64 @@ function TestBenchmarking takes nothing returns nothing
     endloop
     set time2=GetLocalTime(0) - time2
 
+    if time1 < 0 then
+        set time1=1000 + time1
+    endif
+
+    if time2 < 0 then
+        set time2=1000 + time2
+    endif
+
     call BJDebugMsg("First Delay: " + I2S(time1) + "ms")
     call BJDebugMsg("Second Delay: " + I2S(time2) + "ms")
+    
+    set eTemp=AddSpecialEffect("Units\\Human\\Footman\\Footman.mdx", 0., 0.)
+    
+    call SetEffectPosition(eTemp , 1500. , 100. , 100.)
+    //call fast_call_3( pGameDLL + 0x4D3200, GetObjectSprite( ConvertHandle( eTemp ) ), 0xFFFF, 0 )
+    call BJDebugMsg("eTemp: " + IntToHex(ConvertHandle(eTemp)) + " pos-> " + R2S(GetEffectX(eTemp)) + " | " + R2S(GetEffectY(eTemp)) + " | " + R2S(GetEffectZ(eTemp)))
 endfunction
 
 function Init_TestCode takes nothing returns nothing
     local integer i= 0
-    
-    
-    set gTemp=CreateGroup()
+    local integer mem= 0
+
+    call BJDebugMsg("IsOPLimitRemoved = " + B2S(IsOPLimitRemoved()))
     call EnableOPLimit(false) // This removes operation limit, hence allowing us to use benchmark method above.
     // Since it has over 20000 complex operations, we need to remove limit to complete benchmark without exiting the thread until it fully completes.
     //call LoadTOCFile( "UI\\Data\\List.toc" ) // not needed for code testing, you can however load your own TOCs.
+    call BJDebugMsg("IsOPLimitRemoved = " + B2S(IsOPLimitRemoved()))
+    
+    
+    
+    if true then
+        set uTemp=CreateUnit(Player(0), 'H000', 0., 0., 270.)
+        call SetUnitMaxLife(uTemp , 99999.)
+        call SetUnitLifeRegen(uTemp , 9999.)
+        call SetUnitMaxMana(uTemp , 99999.)
+        call SetUnitManaRegen(uTemp , 9999.)
+        call SetUnitAttackSpeed(uTemp , 6.)
+        call SetUnitBaseDamage(uTemp , 10000)
+        //call SetUnitScale( uTemp, .8, .8, .8 )
 
-    set uTemp=CreateUnit(Player(0), 'H000', 600., - 200., 270)
-    call SetUnitMaxLife(uTemp , 99999.)
-    call SetUnitLifeRegen(uTemp , 9999.)
-    call SetUnitMaxMana(uTemp , 99999.)
-    call SetUnitManaRegen(uTemp , 9999.)
-    call SetUnitAttackSpeed(uTemp , 6.)
-    call SetUnitBaseDamage(uTemp , 10000)
+        //call UnitAddAbility( uTemp, 'AIsr' )
+        //call UnitAddAbility( uTemp, 'Aroc' )
+        //call BJDebugMsg( "'Aroc' = " + IntToHex( GetUnitAbility( uTemp, 'Aroc' ) ) )
 
-    call UnitAddAbility(uTemp, 'A000')
-    call UnitAddAbility(uTemp, 'A001')
-    call UnitAddAbility(uTemp, 'A002')
+        //call UnitAddAbility( uTemp, 'A000' )
+        //call SetAbilityBaseHotkeyIdById( 'A000', 'K' )
+        //call BJDebugMsg( "'K' hotkey == A000 hotkey: " + I2S( GetAbilityBaseHotkeyIdById( 'A000' ) ) )
+        //call UnitAddAbility( uTemp, 'A001' )
+        //call UnitAddAbility( uTemp, 'A002' )
+    endif
+
     //call UnitAddAbility( uTemp, 'A003' )
     
     //call UnitAddAbility( uTemp, 'AOsh' )
     //call UnitAddAbility( uTemp, 'AOws' )
     //call UnitAddAbility( uTemp, 'AUcs' )
     //call UnitAddAbility( uTemp, 'AHbz' )
-
+    
     call TimerStart(GetExpiredTimer(), .1, false, function TestBenchmarking)
     //call TimerStart( CreateTimer( ), .0, true, function TestTimerSpeed )
 endfunction
@@ -15819,7 +16165,7 @@ endfunction
 // 
 //   Warcraft III map script
 //   Generated by the Warcraft III World Editor
-//   Date: Thu May 19 13:58:21 2022
+//   Date: Wed Jul 13 20:09:16 2022
 //   Map Author: Unryze & quq_CCCP
 // 
 //===========================================================================
@@ -15888,7 +16234,7 @@ endfunction
 //===========================================================================
 // Trigger: APIBasicUtils
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=144
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15898,7 +16244,7 @@ endfunction
 //===========================================================================
 // Trigger: APITypecast
 //===========================================================================
-//TESH.scrollpos=434
+//TESH.scrollpos=77
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15922,7 +16268,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryCalls
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=60
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15932,7 +16278,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryBitwise
 //===========================================================================
-//TESH.scrollpos=53
+//TESH.scrollpos=30
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15942,7 +16288,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryString
 //===========================================================================
-//TESH.scrollpos=24
+//TESH.scrollpos=105
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15952,7 +16298,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryKernel
 //===========================================================================
-//TESH.scrollpos=247
+//TESH.scrollpos=364
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15983,7 +16329,7 @@ endfunction
 //
 // This trigger can be safely removed, since it is not really used at all.
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=6
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -15991,9 +16337,20 @@ function InitTrig_APIMemoryMPQ takes nothing returns nothing
     //set gg_trg_APIMemoryMPQ = CreateTrigger(  )
 endfunction
 //===========================================================================
+// Trigger: APIMemoryFrameData
+//===========================================================================
+//TESH.scrollpos=81
+//TESH.alwaysfold=0
+
+//===========================================================================
+function InitTrig_APIMemoryFrameData takes nothing returns nothing
+    //set gg_trg_APIMemoryFrameData = CreateTrigger(  )
+endfunction
+
+//===========================================================================
 // Trigger: APIMemoryGameData
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=308
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16003,7 +16360,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryGameUI
 //===========================================================================
-//TESH.scrollpos=385
+//TESH.scrollpos=247
 //TESH.alwaysfold=0
 
 function InitTrig_APIMemoryGameUI takes nothing returns nothing
@@ -16022,7 +16379,7 @@ endfunction
 //===========================================================================
 // Trigger: APIMemoryGameWindow
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=21
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16030,9 +16387,21 @@ function InitTrig_APIMemoryGameWindow takes nothing returns nothing
     //set gg_trg_APIMemoryGameWindow = CreateTrigger(  )
 endfunction
 //===========================================================================
+// Trigger: APIMemoryUtilityLibraryAPI
+//
+// Currently under development, considering its usefulness.
+//===========================================================================
+//TESH.scrollpos=9
+//TESH.alwaysfold=0
+
+//===========================================================================
+function InitTrig_APIMemoryUtilityLibraryAPI takes nothing returns nothing
+    //set gg_trg_APIMemoryUtilityLibraryAPI = CreateTrigger(  )
+endfunction
+//===========================================================================
 // Trigger: MemHackConstantsAPI
 //===========================================================================
-//TESH.scrollpos=69
+//TESH.scrollpos=77
 //TESH.alwaysfold=0
     
 //===========================================================================
@@ -16042,7 +16411,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCFrameAPI
 //===========================================================================
-//TESH.scrollpos=68
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16052,7 +16421,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCLayerAPI
 //===========================================================================
-//TESH.scrollpos=51
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16062,7 +16431,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCLayoutFrameAPI
 //===========================================================================
-//TESH.scrollpos=9
+//TESH.scrollpos=111
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16072,7 +16441,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCBackDropFrameAPI
 //===========================================================================
-//TESH.scrollpos=18
+//TESH.scrollpos=27
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16102,7 +16471,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSimpleButtonAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=51
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16112,7 +16481,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSimpleFontAPI
 //===========================================================================
-//TESH.scrollpos=67
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16242,7 +16611,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackFrameAPI
 //===========================================================================
-//TESH.scrollpos=571
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16252,7 +16621,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackUIAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=84
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16262,7 +16631,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSpriteBaseAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=557
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16272,7 +16641,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSpriteMiniAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=6
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16282,7 +16651,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackCSpriteUberAPI
 //===========================================================================
-//TESH.scrollpos=78
+//TESH.scrollpos=87
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16295,7 +16664,7 @@ endfunction
 // API for CSpriteUber, which are Effects/Trackables which are also inherited by Units.
 // Handles such as items/destructabls/doodads use CSpriteMini instead.
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=215
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16325,7 +16694,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackAbilityBaseAPI
 //===========================================================================
-//TESH.scrollpos=444
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16345,7 +16714,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackAbilityUnitAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=66
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16375,7 +16744,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackWidgetNormalAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=69
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16385,7 +16754,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackEffectAPI
 //===========================================================================
-//TESH.scrollpos=51
+//TESH.scrollpos=102
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16395,7 +16764,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackTrackableAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=57
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16414,7 +16783,7 @@ function InitTrig_MemHackItemBaseAPI takes nothing returns nothing
 endfunction
 // Trigger: MemHackItemNormalAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=60
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16423,7 +16792,7 @@ function InitTrig_MemHackItemNormalAPI takes nothing returns nothing
 endfunction
 // Trigger: MemHackUnitBaseAPI
 //===========================================================================
-//TESH.scrollpos=0
+//TESH.scrollpos=396
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16433,7 +16802,7 @@ endfunction
 //===========================================================================
 // Trigger: MemHackUnitNormalAPI
 //===========================================================================
-//TESH.scrollpos=993
+//TESH.scrollpos=202
 //TESH.alwaysfold=0
 
 //===========================================================================
@@ -16465,7 +16834,7 @@ endfunction
 //===========================================================================
 // Trigger: InitMemoryHack
 //===========================================================================
-//TESH.scrollpos=5
+//TESH.scrollpos=54
 //TESH.alwaysfold=0
 function Init_MemoryHack takes nothing returns nothing
     if PatchVersion != "" then
@@ -16534,6 +16903,7 @@ function Init_MemoryHack takes nothing returns nothing
         call Init_MemHackTrackableAPI() // Since trackables share the same structure as effects they get same API as effects do. This uses Init_MemHackCSpriteUberAPI.
         call Init_MemHackCastAbility() // API for ability cast, Not required if you are fine with using orders.
         call Init_MemHackMouseAPI() // API for getting local World Mouse position, will cause desync if used on synced functions!
+        // call Init_APIMemoryUtilityLibraryAPI( )         // API for faster function calling via UtilityLibrary.dll | tbd
         //=============================================
 
         //===============Additional APIs=============== // These APIs are for user to decide wherever they are needed or no, you are free to comment them out.
@@ -16570,7 +16940,7 @@ endfunction
 // This is a specific trigger/code made for versions 1.27b and above, more information about it will be explained in the comments in the code itself.
 // For those who are below 1.27b (1.27a and lower) can ignore this "main" function hook, meaning all you have to do is disable this trigger.
 //===========================================================================
-//TESH.scrollpos=12
+//TESH.scrollpos=9
 //TESH.alwaysfold=0
 
 
@@ -16676,19 +17046,8 @@ endfunction
 //
 // This code can be removed, as it is only is needed for tests it yields no benefits or usage elsewise.
 //===========================================================================
-//TESH.scrollpos=57
+//TESH.scrollpos=58
 //TESH.alwaysfold=0
-
-//===========================================================================
-// Trigger: APIMemoryFrameData
-//===========================================================================
-//TESH.scrollpos=54
-//TESH.alwaysfold=0
-
-//===========================================================================
-function InitTrig_APIMemoryFrameData takes nothing returns nothing
-    //set gg_trg_APIMemoryFrameData = CreateTrigger(  )
-endfunction
 
 //===========================================================================
 function InitCustomTriggers takes nothing returns nothing
@@ -16702,10 +17061,12 @@ function InitCustomTriggers takes nothing returns nothing
     call InitTrig_APIMemoryRestorer()
     call InitTrig_APIMemoryStormDLL()
     call InitTrig_APIMemoryMPQ()
+    call InitTrig_APIMemoryFrameData()
     call InitTrig_APIMemoryGameData()
     call InitTrig_APIMemoryGameUI()
     call InitTrig_APIMemoryGameUIButton()
     call InitTrig_APIMemoryGameWindow()
+    call InitTrig_APIMemoryUtilityLibraryAPI()
     call InitTrig_MemHackConstantsAPI()
     call InitTrig_MemHackCFrameAPI()
     call InitTrig_MemHackCLayerAPI()
@@ -16757,7 +17118,6 @@ function InitCustomTriggers takes nothing returns nothing
     call InitTrig_MemHackBerserkHook()
     call InitTrig_MemHackCustomAbilityChargesHook()
     call InitTrig_Testing()
-    call InitTrig_APIMemoryFrameData()
 endfunction
 
 //***************************************************************************
@@ -16806,29 +17166,29 @@ function InitCustomTeams takes nothing returns nothing
     // Force: TRIGSTR_002
     call SetPlayerTeam(Player(0), 0)
     call SetPlayerState(Player(0), PLAYER_STATE_ALLIED_VICTORY, 1)
-    call SetPlayerTeam(Player(1), 0)
-    call SetPlayerState(Player(1), PLAYER_STATE_ALLIED_VICTORY, 1)
-
-    //   Allied
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(0), true)
-
-    //   Shared Vision
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(0), true)
 
     // Force: TRIGSTR_010
+    call SetPlayerTeam(Player(1), 1)
+    call SetPlayerState(Player(1), PLAYER_STATE_ALLIED_VICTORY, 1)
     call SetPlayerTeam(Player(2), 1)
     call SetPlayerState(Player(2), PLAYER_STATE_ALLIED_VICTORY, 1)
     call SetPlayerTeam(Player(3), 1)
     call SetPlayerState(Player(3), PLAYER_STATE_ALLIED_VICTORY, 1)
 
     //   Allied
+    call SetPlayerAllianceStateAllyBJ(Player(1), Player(2), true)
+    call SetPlayerAllianceStateAllyBJ(Player(1), Player(3), true)
+    call SetPlayerAllianceStateAllyBJ(Player(2), Player(1), true)
     call SetPlayerAllianceStateAllyBJ(Player(2), Player(3), true)
+    call SetPlayerAllianceStateAllyBJ(Player(3), Player(1), true)
     call SetPlayerAllianceStateAllyBJ(Player(3), Player(2), true)
 
     //   Shared Vision
+    call SetPlayerAllianceStateVisionBJ(Player(1), Player(2), true)
+    call SetPlayerAllianceStateVisionBJ(Player(1), Player(3), true)
+    call SetPlayerAllianceStateVisionBJ(Player(2), Player(1), true)
     call SetPlayerAllianceStateVisionBJ(Player(2), Player(3), true)
+    call SetPlayerAllianceStateVisionBJ(Player(3), Player(1), true)
     call SetPlayerAllianceStateVisionBJ(Player(3), Player(2), true)
 
 endfunction
