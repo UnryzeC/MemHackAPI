@@ -1,4 +1,4 @@
-//TESH.scrollpos=48
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCLayerAPI
@@ -131,8 +131,8 @@ library MemoryHackCLayerAPI
 
             if fid > 0 then
                 if pTooltip > 0 then
-                    call WriteRealMemory( pFrame + 0x230, 1 )
-                    call this_call_2( addr, pTooltip + 0xB4, 1 ) //if 1.29+ then 0xBC
+                    //call WriteRealMemory( pFrame + 0x230, 1 )
+                    //call this_call_2( addr, pTooltip + 0xB4, 1 ) //if 1.29+ then 0xBC
                 endif
                 
                 set addr = LoadInteger( MemHackTable, StringHash( "CLayer" ), StringHash( "SetTooltip" ) )

@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=57
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackTrackableAPI
@@ -75,8 +75,8 @@ library MemoryHackTrackableAPI
         call SetObjectAnimationByIndex( ConvertHandle( track ), index )
     endfunction
     
-    function SetTrackableModel takes trackable track, string model returns nothing
-        call SetObjectModel( ConvertHandle( track ), model )
+    function SetTrackableModel takes trackable track, string model, boolean flag returns nothing
+        call SetObjectModel( ConvertHandle( track ), model, flag )
     endfunction
 
     function GetTrackableX takes trackable track returns real

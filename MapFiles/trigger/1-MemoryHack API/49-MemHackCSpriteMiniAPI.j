@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=6
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCASpriteMiniAPI

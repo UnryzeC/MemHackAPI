@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=215
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackCObjectAPI
@@ -194,7 +194,7 @@ library MemoryHackCObjectAPI
         call SetSpriteBaseAnimationByIndexWithRarity( GetObjectSprite( pObject ), index, rarity )
     endfunction
     
-    function SetObjectModel takes integer pObject, string model returns nothing
+    function SetObjectModel takes integer pObject, string model, boolean flag returns nothing
         // Works on every handle, even items.
         local integer pData = 0
 
@@ -205,7 +205,7 @@ library MemoryHackCObjectAPI
                 set pData = ReadRealMemory( pData )
 
                 if pData > 0 then
-                    call this_call_3( pData, pObject, GetStringAddress( model ), 1 )
+                    call this_call_3( pData, pObject, GetStringAddress( model ), B2I( flag ) )
                 endif
             endif
         endif
@@ -216,7 +216,14 @@ library MemoryHackCObjectAPI
     endfunction
 
     function SetObjectX takes integer pObject, real x returns nothing
-        call SetObjectSpriteFloat( pObject, 0xC0, x )
+        local integer pSprite   = GetObjectSprite( pObject )
+        local integer pSmartPos = 0
+
+        if pSprite != 0 then
+            set pSmartPos = this_call_1( ReadRealMemory( ReadRealMemory( pObject ) + 0xB0 ), pObject )
+            call SetSmartPositionAxisEx( pSmartPos, x, ReadRealFloat( pSprite + 0xC4 ), 1 )
+            call WriteRealFloat( pSprite + 0xC0, x )
+        endif
     endfunction
 
     function GetObjectY takes integer pObject returns real
@@ -224,7 +231,14 @@ library MemoryHackCObjectAPI
     endfunction
 
     function SetObjectY takes integer pObject, real y returns nothing
-        call SetObjectSpriteFloat( pObject, 0xC4, y )
+        local integer pSprite   = GetObjectSprite( pObject )
+        local integer pSmartPos = 0
+
+        if pSprite != 0 then
+            set pSmartPos = this_call_1( ReadRealMemory( ReadRealMemory( pObject ) + 0xB0 ), pObject )
+            call SetSmartPositionAxisEx( pSmartPos, ReadRealFloat( pSprite + 0xC0 ), y, 1 )
+            call WriteRealFloat( pSprite + 0xC4, y )
+        endif
     endfunction
 
     function GetObjectZ takes integer pObject returns real
@@ -236,9 +250,12 @@ library MemoryHackCObjectAPI
     endfunction
 
     function SetObjectPosition takes integer pObject, real x, real y, real z returns nothing
-        local integer pSprite = GetObjectSprite( pObject )
+        local integer pSprite   = GetObjectSprite( pObject )
+        local integer pSmartPos = 0
 
         if pSprite != 0 then
+            set pSmartPos = this_call_1( ReadRealMemory( ReadRealMemory( pObject ) + 0xB0 ), pObject )
+            call SetSmartPositionAxisEx( pSmartPos, x, y, 1 )
             call WriteRealFloat( pSprite + 0xC0, x )
             call WriteRealFloat( pSprite + 0xC4, y )
             call WriteRealFloat( pSprite + 0xC8, z )

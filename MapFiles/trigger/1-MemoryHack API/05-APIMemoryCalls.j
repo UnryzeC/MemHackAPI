@@ -1,4 +1,4 @@
-//TESH.scrollpos=471
+//TESH.scrollpos=60
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryAllCalls
@@ -622,11 +622,11 @@ library APIMemoryAllCalls
                 call WriteRealMemory( addr + 0x38, 0xC359D1FF ) // call ecx, pop ecx, ret
             endif
 
-            call WriteRealMemory( addr + 0x04, arg6 )     // push arg5
-            call WriteRealMemory( addr + 0x0C, arg5 )     // push arg4
-            call WriteRealMemory( addr + 0x14, arg4 )     // push arg3
-            call WriteRealMemory( addr + 0x1C, arg3 )     // push arg2
-            call WriteRealMemory( addr + 0x24, arg2 )     // push arg1
+            call WriteRealMemory( addr + 0x04, arg6 )     // push arg6
+            call WriteRealMemory( addr + 0x0C, arg5 )     // push arg5
+            call WriteRealMemory( addr + 0x14, arg4 )     // push arg4
+            call WriteRealMemory( addr + 0x1C, arg3 )     // push arg3
+            call WriteRealMemory( addr + 0x24, arg2 )     // push arg2
             call WriteRealMemory( addr + 0x2C, arg1 )     // push arg1
             call WriteRealMemory( addr + 0x34, funcaddr ) // mov ecx, funcaddr
 
@@ -636,6 +636,37 @@ library APIMemoryAllCalls
         return 0
     endfunction
 
+    function std_call_7 takes integer funcaddr, integer arg1, integer arg2, integer arg3, integer arg4, integer arg5, integer arg6, integer arg7 returns integer
+        local integer addr = LoadInteger( MemHackTable, StringHash( "std_call_7" ), StringHash( "function" ) )
+
+        if addr != 0 then
+            if ReadRealMemory( addr ) == 0 then
+                call WriteRealMemory( addr + 0x00, 0x68C98B51 ) // push ecx, mov ecx, ecx
+                call WriteRealMemory( addr + 0x08, 0x6890C98B ) // mov ecx, ecx
+                call WriteRealMemory( addr + 0x10, 0x6890C98B ) // mov ecx, ecx
+                call WriteRealMemory( addr + 0x18, 0x6890C98B ) // mov ecx, ecx
+                call WriteRealMemory( addr + 0x20, 0x6890C98B ) // mov ecx, ecx
+                call WriteRealMemory( addr + 0x28, 0x6890C98B ) // mov ecx, ecx, nop
+                call WriteRealMemory( addr + 0x30, 0x6890C98B ) // mov ecx, ecx, nop
+                call WriteRealMemory( addr + 0x38, 0xB990C98B ) // mov ecx, ecx, nop
+                call WriteRealMemory( addr + 0x40, 0xC359D1FF ) // call ecx, pop ecx, ret
+            endif
+
+            call WriteRealMemory( addr + 0x04, arg7 )     // push arg7
+            call WriteRealMemory( addr + 0x0C, arg6 )     // push arg6
+            call WriteRealMemory( addr + 0x14, arg5 )     // push arg5
+            call WriteRealMemory( addr + 0x1C, arg4 )     // push arg4
+            call WriteRealMemory( addr + 0x24, arg3 )     // push arg3
+            call WriteRealMemory( addr + 0x2C, arg2 )     // push arg2
+            call WriteRealMemory( addr + 0x34, arg1 )     // push arg1
+            call WriteRealMemory( addr + 0x3C, funcaddr ) // mov ecx, funcaddr
+
+            return ExecuteBytecode( addr )
+        endif
+
+        return 0
+    endfunction
+    
     function c_call_0 takes integer funcaddr returns integer
         local integer addr = LoadInteger( MemHackTable, StringHash( "c_call_0" ), StringHash( "function" ) )
 
@@ -933,6 +964,7 @@ library APIMemoryAllCalls
             call AllocFunctionCall( "std_call_4", 0x2C )
             call AllocFunctionCall( "std_call_5", 0x34 )
             call AllocFunctionCall( "std_call_6", 0x3C )
+            call AllocFunctionCall( "std_call_7", 0x44 )
 
             call AllocFunctionCall( "c_call_0", 0x10 )
             call AllocFunctionCall( "c_call_1", 0x18 )

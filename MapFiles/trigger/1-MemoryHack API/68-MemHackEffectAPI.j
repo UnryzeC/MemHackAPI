@@ -1,4 +1,4 @@
-//TESH.scrollpos=51
+//TESH.scrollpos=102
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackEffectAPI
@@ -67,12 +67,8 @@ library MemoryHackEffectAPI
         call SetObjectColourB( ConvertHandle( e ), blue )
     endfunction
 
-    function SetEffectAnimationByIndex takes effect e, integer index returns nothing
-        call SetObjectAnimationByIndex( ConvertHandle( e ), index )
-    endfunction
-
-    function SetEffectModel takes effect e, string model returns nothing
-        call SetObjectModel( ConvertHandle( e ), model )
+    function SetEffectModel takes effect e, string model, boolean flag returns nothing
+        call SetObjectModel( ConvertHandle( e ), model, flag )
     endfunction
 
     function GetEffectX takes effect e returns real
@@ -167,6 +163,14 @@ library MemoryHackEffectAPI
         call ResetObjectMatrix( ConvertHandle( e ) )
     endfunction
 
+    function SetEffectAnimationByIndex takes effect e, integer index returns nothing
+        call SetObjectAnimationByIndex( ConvertHandle( e ), index )
+    endfunction
+
+    function SetEffectAnimationByIndexWithRarity takes effect e, integer index, integer rarity returns nothing
+        call SetObjectAnimationByIndexWithRarity( ConvertHandle( e ), index, rarity )
+    endfunction
+    
     function Init_MemHackEffectAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then

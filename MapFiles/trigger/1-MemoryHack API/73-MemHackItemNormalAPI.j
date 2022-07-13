@@ -1,4 +1,4 @@
-//TESH.scrollpos=0
+//TESH.scrollpos=60
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackItemNormalAPI
@@ -45,8 +45,8 @@ library MemoryHackItemNormalAPI
         endif
     endfunction
     
-    function CItemSetModel takes integer pItem, string model returns nothing
-        call SetObjectModel( pItem, model )
+    function CItemSetModel takes integer pItem, string model, boolean flag returns nothing
+        call SetObjectModel( pItem, model, flag )
     endfunction
     
     function CItemGetLife takes integer pItem returns real
@@ -91,8 +91,8 @@ library MemoryHackItemNormalAPI
         call CItemSetTypeId( ConvertHandle( it ), id )
     endfunction
     
-    function SetItemModel takes item it, string model returns nothing
-        call CItemSetModel( ConvertHandle( it ), model )
+    function SetItemModel takes item it, string model, boolean flag returns nothing
+        call CItemSetModel( ConvertHandle( it ), model, flag )
     endfunction
     
     function GetItemLife takes item it returns real

@@ -1,4 +1,4 @@
-//TESH.scrollpos=583
+//TESH.scrollpos=0
 //TESH.alwaysfold=0
 //! nocjass
 native MergeUnits   takes integer qty, integer a, integer b, integer make returns boolean    // reserved native for call 4 integer function and return BOOLEAN value

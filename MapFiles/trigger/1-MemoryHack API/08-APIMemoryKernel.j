@@ -1,4 +1,4 @@
-//TESH.scrollpos=327
+//TESH.scrollpos=364
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryKernel
@@ -46,6 +46,40 @@ library APIMemoryKernel
         endif
 
         return 0
+    endfunction
+    
+    function CreateDirectory takes string directorypath, integer securityAttributes returns integer
+        local integer addr = GetFuncFromDll( "Kernel32.dll", "CreateDirectoryA", true )
+        
+        if addr != 0 then
+            return std_call_2( addr, GetStringAddress( directorypath ), securityAttributes )
+        endif
+        
+        return 0
+    endfunction
+
+    function CreateFile takes string filename, integer accessType, integer shareMode, integer securityAttributes, integer creationDisposition, integer flags, integer templateFile returns integer
+        local integer addr = GetFuncFromDll( "Kernel32.dll", "CreateFileA", true )
+
+        if addr != 0 then
+            // explanations here: https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+            return std_call_7( addr, GetStringAddress( filename ), accessType, shareMode, securityAttributes, creationDisposition, flags, templateFile )
+        endif
+
+        return 0
+    endfunction
+    
+    function CreateFileSimple takes string filename returns integer
+        return CreateFile( filename, 0xC0000000, 0x00000002, 0, 0x1, 0x80, 0 )
+    endfunction
+    
+    function CloseHandle takes integer hHandle returns nothing
+        local integer addr = GetFuncFromDll( "Kernel32.dll", "CloseHandle", true )
+
+        if addr != 0 and hHandle != 0 then
+            // explanations here: https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+            call std_call_1( addr, hHandle )
+        endif
     endfunction
 
     function ReadStringFromFile takes string sfile, string ssection, string skey, string sdefval returns string

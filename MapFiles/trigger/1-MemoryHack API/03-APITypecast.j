@@ -1,4 +1,4 @@
-//TESH.scrollpos=434
+//TESH.scrollpos=77
 //TESH.alwaysfold=0
 //! nocjass
 library APIAllTypecast

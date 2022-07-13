@@ -1,4 +1,4 @@
-//TESH.scrollpos=15
+//TESH.scrollpos=202
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackUnitNormalAPI
@@ -226,8 +226,8 @@ library MemoryHackUnitNormalAPI
         return GetByteFromInteger( GetUnitVertexColour( u ), 4 )
     endfunction
 
-    function SetUnitModel takes unit u, string model returns nothing
-        call SetObjectModel( ConvertHandle( u ), model )
+    function SetUnitModel takes unit u, string model, boolean flag returns nothing
+        call SetObjectModel( ConvertHandle( u ), model, flag )
     endfunction
 
     function SetUnitTexture takes unit u, string texturepath, integer textureId returns integer

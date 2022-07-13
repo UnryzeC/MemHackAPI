@@ -1,9 +1,9 @@
-//TESH.scrollpos=69
+//TESH.scrollpos=77
 //TESH.alwaysfold=0
 //! nocjass
 library MemoryHackConstantsAPI
     function IsOPLimitRemoved takes nothing returns boolean
-        local integer addr = LoadInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "GetData" ) )
+        local integer addr = LoadInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ) )
 
         if addr != 0 then
             return ReadRealMemory( addr ) == 0x6A570FFF // 6A570004
@@ -21,7 +21,7 @@ library MemoryHackConstantsAPI
         if addr != 0 then
             if oldvalue == 0 then
                 set oldvalue = ReadRealMemory( addr )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Value" + I2S( id ) ), ReadRealMemory( addr ) )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Value" + I2S( id ) ), oldvalue )
             endif
 
             if oldvalue != 0 then
@@ -44,12 +44,11 @@ library MemoryHackConstantsAPI
 
         loop
             exitwhen i > 9
-            call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Value" + I2S( i ) ), 0x0 )
             call EnableOPLimitEx( flag, i )
             set i = i + 1
         endloop
     endfunction
-    
+
     function Init_MemHackConstantsAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
