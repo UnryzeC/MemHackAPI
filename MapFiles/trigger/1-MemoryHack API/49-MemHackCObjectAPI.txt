@@ -1,2 +1,0 @@
-API for CSpriteUber, which are Effects/Trackables which are also inherited by Units.
-Handles such as items/destructabls/doodads use CSpriteMini instead.
