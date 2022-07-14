@@ -1,0 +1,2 @@
+This is a specific trigger/code made for versions 1.27b and above, more information about it will be explained in the comments in the code itself.
+For those who are below 1.27b (1.27a and lower) can ignore this "main" function hook, meaning all you have to do is disable this trigger.

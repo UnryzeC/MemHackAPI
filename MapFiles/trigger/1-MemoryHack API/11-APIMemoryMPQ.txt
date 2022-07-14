@@ -1,0 +1,1 @@
+This trigger can be safely removed, since it is not really used at all.
