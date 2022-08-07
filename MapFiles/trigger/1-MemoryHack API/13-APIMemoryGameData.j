@@ -1,4 +1,4 @@
-//TESH.scrollpos=394
+//TESH.scrollpos=116
 //TESH.alwaysfold=0
 //! nocjass
 library APIMemoryGameData

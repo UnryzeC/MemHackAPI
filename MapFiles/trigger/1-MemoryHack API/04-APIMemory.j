@@ -50,11 +50,11 @@ library APIMemory
             set tmpval = tmpval / 256
             set byte1  = 255 - tmpval
         else
-            set byte4  =  ModuloInteger( tmpval, 256)
+            set byte4  =  ModuloInteger( tmpval, 256 )
             set tmpval = tmpval / 256
-            set byte3  =  ModuloInteger( tmpval, 256)
+            set byte3  =  ModuloInteger( tmpval, 256 )
             set tmpval = tmpval / 256
-            set byte2  =  ModuloInteger( tmpval, 256)
+            set byte2  =  ModuloInteger( tmpval, 256 )
             set tmpval = tmpval / 256
             set byte1  = tmpval
         endif
@@ -135,7 +135,7 @@ library APIMemory
     endfunction
 
     function ReadUnrealMemory takes integer address returns integer
-        if address * 4 < 0x7Fffffff and address > 0x500 then
+        if address * 4 < 0x7FFFFFFF and address > 0x500 then
             return l__Memory[ address ]
         endif
 

@@ -6,7 +6,7 @@ library MemoryHackConstantsAPI
         local integer addr = LoadInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ) )
 
         if addr != 0 then
-            return ReadRealMemory( addr ) == 0x6A570FFF // 6A570004
+            return ReadRealMemory( addr ) == 0x7FFFFFFF // 6A570004 -> 0x6A570FFF
         endif
 
         return false
@@ -28,7 +28,7 @@ library MemoryHackConstantsAPI
                 if flag then
                     set value = oldvalue
                 else
-                    set value = 0x6A570FFF
+                    set value = 0x7FFFFFFF // 0x6A570FFF
                 endif
 
                 set oldprotection1 = ChangeOffsetProtection( addr, 0x4, 0x40 )
@@ -52,58 +52,56 @@ library MemoryHackConstantsAPI
     function Init_MemHackConstantsAPI takes nothing returns nothing
         if PatchVersion != "" then
             if PatchVersion == "1.24e" then
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x3A8ECC )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x2DED64 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x2E1718 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x2E1728 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x3B5F02 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x3B5FC1 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x3B5FF3 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x460489 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x460818 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x3A8ECA )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x2DED62 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x2E1716 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x2E1726 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x3B5F00 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x3B5FBF )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x3B5FF1 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x460487 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x460816 )
         elseif PatchVersion == "1.26a" then
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x3A838C ) // addr4
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x2DE244 ) // ScriptRunFunctionById limit1
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x2E0BF8 ) // ScriptRunFunctionById limit2
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x2E0C08 ) // ScriptRunFunction "main" limit
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x3B53C2 ) // jPreloader Limit
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x3B5481 ) // config limit
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x3B54B3 ) // main limit
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x45F979 ) // call limit
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x45FD08 ) // call native limit?
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x3A838A ) // addr4
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x2DE242 ) // ScriptRunFunctionById limit1
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x2E0BF6 ) // ScriptRunFunctionById limit2
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x2E0C06 ) // ScriptRunFunction "main" limit
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x3B53C0 ) // jPreloader Limit
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x3B547F ) // config limit
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x3B54B1 ) // main limit
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x45F977 ) // call limit
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x45FD06 ) // call native limit?
         elseif PatchVersion == "1.27a" then
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x1BFB4B )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x1E9A01 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x1EF713 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x1F224D )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x7F1975 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x7F2A1C )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x8909F7 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x890A07 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x8920A6 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x1BFB49 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x1E99FF )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x1EF711 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x1F224B )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x7F1973 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x7F2A1A )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x8909F5 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x890A05 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x8920A4 )
         elseif PatchVersion == "1.27b" then
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x1DD83B )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x207451 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x20D153 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x20FECD )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x91B3B5 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x1DD839 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x20744F )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x20D151 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x20FECB )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x91B3B3 )
                 call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x91C3EC )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x9BBAF7 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x9BBB07 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x9BD1A6 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x9BBAFA )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x9BBB05 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x9BD1A4 )
         elseif PatchVersion == "1.28f" then
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x2100BB )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x239C21 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x23F943 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x24255C )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x8D0305 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x8D133C )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x970A87 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x970A97 )
-                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x972136 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr1" ), pGameDLL + 0x2100B9 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr2" ), pGameDLL + 0x239C1F )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr3" ), pGameDLL + 0x23F941 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr4" ), pGameDLL + 0x24255A )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr5" ), pGameDLL + 0x8D0303 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr6" ), pGameDLL + 0x8D133A )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr7" ), pGameDLL + 0x970A85 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr8" ), pGameDLL + 0x970A95 )
+                call SaveInteger( MemHackTable, StringHash( "OPLimit" ), StringHash( "Addr9" ), pGameDLL + 0x972134 )
             endif
-
-            
         endif
     endfunction
 endlibrary

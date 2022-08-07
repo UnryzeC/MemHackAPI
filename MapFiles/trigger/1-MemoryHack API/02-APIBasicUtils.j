@@ -178,17 +178,21 @@ library APIBasicUtils
         local integer numb  = absI( i )
         local integer j     = 0
 
-        loop
-            exitwhen numb == 0
-            set j = numb - ( numb / 16 ) * 16
-            set result = GetIntHex( j ) + result
-            set numb = ( numb - j ) / 16
-        endloop
+        if numb != 0 then
+            loop
+                exitwhen numb == 0
+                set j = numb - ( numb / 16 ) * 16
+                set result = GetIntHex( j ) + result
+                set numb = ( numb - j ) / 16
+            endloop
 
-        set result = "0x" + result
+            set result = "0x" + result
 
-        if not ispos then
-            set result = "-" + result
+            if not ispos then
+                set result = "-" + result
+            endif
+        else
+            set result = "0x00"
         endif
 
         return result
