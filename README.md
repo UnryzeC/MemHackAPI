@@ -1,8 +1,8 @@
-# MemHackAPI
+# MemHackAPI / Memory Hack API
 Jass-language based API to enhance Warcraft 3
 
 What is MemHack?
-  - TBD
+  - Memory Hack or its shorter name "MemHack" is a simple exploit that allows us to escape Jass Virtual Machine and gain access to game's memory directly. This means it's possible to roughly reach a C++ like access via Jass. However, the limitation is Jass itself and the necessity of using bytecode, as we can't really directly invoke C++ code, unless we compile a library (dll) and invoke its code.
 
 What do I need to compile it?
   - https://www.hiveworkshop.com/threads/w3x2lni-v2-7-2.305201/
